@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+dist/artifact/
+*.zip
+.DS_Store
+.vercel
+# never commit the original résumé (it contains a home address and date of birth)
+src/assets/Jessie-J-Resume.pdf
