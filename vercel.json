@@ -6,6 +6,34 @@
   "outputDirectory": "dist/site",
   "cleanUrls": true,
   "headers": [
-    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] }
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/Jessie_Physiotherapist_Resume.pdf",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/pdf"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment; filename=\"Jessie_Physiotherapist_Resume.pdf\""
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/Jessie-J-Resume.pdf",
+      "destination": "/Jessie_Physiotherapist_Resume.pdf",
+      "permanent": true
+    }
   ]
 }

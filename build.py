@@ -17,7 +17,7 @@ import markup as M  # noqa: E402
 e = html.escape
 FONTS = ("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800"
          "&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap")
-TITLE = "Jessie J., Physiotherapist"
+TITLE = M.BRAND_NAME
 DESCRIPTION = ("Jessie J. is a physiotherapist in Chennai specialising in sports and orthopaedic "
                "rehabilitation, post-operative recovery, neuro rehab and home-based care.")
 RESUME = M.RESUME
@@ -49,7 +49,7 @@ def build():
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{TITLE}</title>
 <meta name="description" content="{e(DESCRIPTION)}">
-<meta name="author" content="Jessie J.">
+<meta name="author" content="Jessie">
 <meta name="theme-color" content="#2447df">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="{TITLE}">
@@ -73,7 +73,7 @@ def build():
     art.mkdir(parents=True)
     photo = "data:image/webp;base64," + base64.b64encode((SRC / "assets" / "jessie-cutout.webp").read_bytes()).decode()
     shutil.copy(SRC / "assets" / "Jessie-J-Resume-public.pdf", art / RESUME)
-    art_head = (f'<title>Jessie J. Physiotherapist</title>\n'
+    art_head = (f'<title>{TITLE}</title>\n'
                 f'<meta name="claude:viewport-fit-sides" content="cover">\n'
                 f'<meta name="description" content="{e(DESCRIPTION)}">\n{fonts}\n<style>\n{css}\n</style>\n')
     (art / "index.html").write_text(art_head + M.page("artifact", photo) + scripts + "\n")

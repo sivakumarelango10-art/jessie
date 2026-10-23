@@ -9,7 +9,7 @@ Everything to upload is in `dist/site/`:
 ```
 dist/site/
   index.html              the whole page (HTML, CSS and JS inlined)
-  Jessie-J-Resume.pdf     public résumé (home address and date of birth removed)
+  Jessie_Physiotherapist_Resume.pdf  public résumé (home address and date of birth removed)
   assets/jessie.webp      portrait, background removed
   assets/og.jpg           preview image for WhatsApp / LinkedIn link shares
 ```

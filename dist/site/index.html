@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Jessie J., Physiotherapist</title>
+<title>Jessie - Physiotherapist</title>
 <meta name="description" content="Jessie J. is a physiotherapist in Chennai specialising in sports and orthopaedic rehabilitation, post-operative recovery, neuro rehab and home-based care.">
-<meta name="author" content="Jessie J.">
+<meta name="author" content="Jessie">
 <meta name="theme-color" content="#2447df">
 <meta property="og:type" content="profile">
-<meta property="og:title" content="Jessie J., Physiotherapist">
+<meta property="og:title" content="Jessie - Physiotherapist">
 <meta property="og:description" content="Jessie J. is a physiotherapist in Chennai specialising in sports and orthopaedic rehabilitation, post-operative recovery, neuro rehab and home-based care.">
 <meta property="og:image" content="assets/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,6 +30,7 @@
   --line: #d9d8d1;
   --blue: #2447df;
   --blue-soft: #c9d3f6;
+  --blue-deep: #1834b3;
   --coral: #ef604a;
   --on-blue: #ffffff;
   --dark: #15161a;
@@ -60,7 +61,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #101114; --surface: #191b1f; --surface-2: #1f2226; --tint: #1a2036; --ink: #f0efea; --muted: #a1a4ac;
-    --line: #2c2f35; --blue: #7189ff; --blue-soft: #2b3768; --coral: #ff7863; --on-blue: #0c0d10; --dark: #08090b;
+    --line: #2c2f35; --blue: #7189ff; --blue-soft: #2b3768; --blue-deep: #9aabff; --coral: #ff7863; --on-blue: #0c0d10; --dark: #08090b;
     --on-dark: #f0efea; --on-dark-muted: #979aa3; --grid: rgba(240, 239, 234, 0.045);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 40px -20px rgba(0, 0, 0, 0.6);
     color-scheme: dark;
@@ -68,7 +69,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #101114; --surface: #191b1f; --surface-2: #1f2226; --tint: #1a2036; --ink: #f0efea; --muted: #a1a4ac;
-  --line: #2c2f35; --blue: #7189ff; --blue-soft: #2b3768; --coral: #ff7863; --on-blue: #0c0d10; --dark: #08090b;
+  --line: #2c2f35; --blue: #7189ff; --blue-soft: #2b3768; --blue-deep: #9aabff; --coral: #ff7863; --on-blue: #0c0d10; --dark: #08090b;
   --on-dark: #f0efea; --on-dark-muted: #979aa3; --grid: rgba(240, 239, 234, 0.045);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 40px -20px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
@@ -120,7 +121,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ---------- Buttons ---------- */
 .btn {
   --b: var(--ink); --f: var(--bg);
-  position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 24px;
+  position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px;
   border-radius: 14px; border: 1.5px solid var(--b); background: var(--b); color: var(--f);
   font: 600 0.975rem/1 var(--f-body); letter-spacing: -0.005em; text-decoration: none; cursor: pointer; overflow: hidden; isolation: isolate;
   transition: color .45s var(--ease), border-color .45s var(--ease), transform .25s var(--ease);
@@ -135,7 +136,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 .btn svg { width: 18px; height: 18px; flex: none; transition: transform .45s var(--ease); }
 .btn:hover svg.arrow { transform: translateX(4px); }
 .btn:hover svg.down { transform: translateY(2px); }
-.btn.primary { --b: var(--blue); --f: var(--on-blue); --hover-bg: var(--ink); --hover-fg: var(--bg); }
 .btn.outline { --b: var(--line); --f: var(--ink); background: transparent; --hover-bg: var(--ink); --hover-fg: var(--bg); }
 .btn.outline:hover { border-color: var(--ink); }
 .btn.ghost { border-color: transparent; background: transparent; --f: var(--ink); padding: 0 10px; }
@@ -143,13 +143,15 @@ ul { margin: 0; padding: 0; list-style: none; }
 .btn.ghost span { background: linear-gradient(var(--blue), var(--blue)) 0 100% / 0 2px no-repeat; padding-bottom: 3px; transition: background-size .5s var(--ease); }
 .btn.ghost:hover { color: var(--ink); border-color: transparent; }
 .btn.ghost:hover span { background-size: 100% 2px; }
-.btn.small { min-height: 42px; padding: 0 16px; font-size: 0.9rem; border-radius: 12px; }
+/* Résumé download: one component, identical in header, hero, menu and contact. Hover stays blue so it reads the same on light and dark sections. */
+.btn-resume { --b: var(--blue); --f: var(--on-blue); --hover-bg: var(--blue-deep); --hover-fg: var(--on-blue); white-space: nowrap; }
+.btn-resume:hover { border-color: var(--blue-deep); }
 
 /* ---------- Navigation: floating capsule ---------- */
 .site-header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; padding-top: 14px; transition: transform .5s var(--ease); }
 .site-header.hide { transform: translateY(calc(-100% - 10px)); }
 .nav-shell {
-  display: flex; align-items: center; justify-content: space-between; gap: 18px; height: 64px; padding: 0 10px 0 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px; height: 68px; padding: 0 10px 0 14px;
   border-radius: 20px; border: 1px solid transparent; background: transparent;
   transition: background-color .5s var(--ease), border-color .5s var(--ease), box-shadow .5s var(--ease);
 }
@@ -157,12 +159,15 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: color-mix(in srgb, var(--surface) 84%, transparent); border-color: var(--line); box-shadow: var(--shadow);
   -webkit-backdrop-filter: saturate(1.5) blur(14px); backdrop-filter: saturate(1.5) blur(14px);
 }
-.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--f-display); font-weight: 700; font-size: 1.25rem; letter-spacing: -0.02em; font-variation-settings: "wdth" 90; }
+.brand { display: inline-flex; align-items: center; gap: 10px; min-width: 0; text-decoration: none; font-family: var(--f-display); font-weight: 500; font-size: 1.2rem; letter-spacing: -0.015em; font-variation-settings: "wdth" 90; transition: color .35s var(--ease); }
+.brand-text { white-space: nowrap; }
+.brand-text b { font-weight: 700; }
+.brand:hover { color: var(--blue); }
 .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--blue); display: grid; place-items: center; flex: none; }
 .brand-mark svg { width: 22px; height: 22px; }
 .nav-links { display: flex; gap: 2px; position: relative; padding: 4px; }
 .nav-links a {
-  position: relative; z-index: 1; text-decoration: none; padding: 9px 13px; border-radius: 10px;
+  position: relative; z-index: 1; text-decoration: none; padding: 9px 11px; border-radius: 10px;
   font-family: var(--f-label); font-size: 0.74rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
   transition: color .35s var(--ease);
 }
@@ -191,13 +196,15 @@ ul { margin: 0; padding: 0; list-style: none; }
   transform: translateY(14px); opacity: 0; transition: transform .5s var(--ease), opacity .5s var(--ease), background-color .3s;
 }
 .mobile-menu a.big:hover { background: var(--tint); }
-.mobile-menu a.big.wide { grid-column: 1 / -1; justify-content: center; background: var(--blue); color: var(--on-blue); }
 .mobile-menu.open a.big { transform: none; opacity: 1; transition-delay: calc(var(--i) * 35ms + 120ms); }
+.mobile-menu .menu-resume { grid-column: 1 / -1; margin-top: 4px; }
+.mobile-menu .menu-resume .btn-resume { width: 100%; justify-content: center; }
 .mobile-menu .menu-foot { display: grid; gap: 2px; margin-top: 18px; color: var(--muted); font-size: var(--t-small); }
 .scrim { position: fixed; inset: 0; z-index: 47; background: rgba(10, 11, 13, 0.45); opacity: 0; visibility: hidden; transition: opacity .5s var(--ease), visibility 0s linear .5s; }
 .scrim.open { opacity: 1; visibility: visible; transition: opacity .5s var(--ease), visibility 0s; }
-@media (max-width: 1100px) { .nav-links { display: none; } .menu-btn { display: flex; } }
-@media (max-width: 520px) { .header-cta .btn { display: none; } }
+@media (max-width: 1219px) { .nav-links { display: none; } .menu-btn { display: flex; } }
+@media (max-width: 679px) { .header-cta .btn-resume { display: none; } }
+@media (max-width: 420px) { .brand-mark { display: none; } .brand { font-size: 1.08rem; } .nav-shell { gap: 10px; padding: 0 8px 0 14px; } }
 
 /* ---------- Hero ---------- */
 .hero { position: relative; padding-block: clamp(36px, 6vw, 80px) clamp(72px, 9vw, 128px); overflow: clip; isolation: isolate; }
@@ -464,7 +471,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .chip-btn:hover { background: var(--blue); color: var(--on-blue); transform: translateY(-2px); }
 .chip-btn:active { transform: scale(0.96); }
-.contact .btn.primary { --hover-bg: var(--on-dark); --hover-fg: var(--dark); }
+.channel-cta { margin-top: 12px; }
 .contact :focus-visible { outline-color: var(--on-dark); }
 .contact .tape.c1 { width: 260px; right: -40px; top: 64px; rotate: 24deg; }
 .contact .tape.c2 { width: 190px; right: 150px; top: 34px; rotate: -18deg; border-radius: 6px 17px 17px 6px; }
@@ -526,10 +533,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 <header class="site-header">
   <div class="wrap">
     <div class="nav-shell">
-      <a class="brand" href="#top" aria-label="Jessie J., back to top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="var(--on-blue)" stroke-width="2"/><rect x="1.5" y="9.6" width="21" height="4.8" rx="2.4" fill="var(--on-blue)" opacity=".38" transform="rotate(-35 12 12)"/><circle cx="12" cy="12" r="1.6" fill="var(--on-blue)"/></svg></span><span>Jessie J.</span></a>
+      <a class="brand" href="#top" aria-label="Jessie - Physiotherapist, back to top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="var(--on-blue)" stroke-width="2"/><rect x="1.5" y="9.6" width="21" height="4.8" rx="2.4" fill="var(--on-blue)" opacity=".38" transform="rotate(-35 12 12)"/><circle cx="12" cy="12" r="1.6" fill="var(--on-blue)"/></svg></span><span class="brand-text"><b>Jessie</b> - Physiotherapist</span></a>
       <nav class="nav-links" aria-label="Sections"><a href="#about">About</a><a href="#approach">Approach</a><a href="#expertise">Expertise</a><a href="#experience">Experience</a><a href="#research">Research</a><a href="#education">Education</a><a href="#contact">Contact</a><span class="nav-pill" aria-hidden="true"></span></nav>
       <div class="header-cta">
-        <a class="btn primary small" href="Jessie-J-Resume.pdf" download><span>Résumé</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a>
+        <a class="btn btn-resume" href="Jessie_Physiotherapist_Resume.pdf" download="Jessie_Physiotherapist_Resume.pdf" type="application/pdf"><span>Download Résumé (PDF)</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a>
         <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu"><span></span><span></span></button>
       </div>
     </div>
@@ -537,7 +544,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 </header>
 <div class="scrim" aria-hidden="true"></div>
 <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
-  <nav aria-label="Sections, mobile"><ul><li><a class="big" href="#about" style="--i:0">About</a></li><li><a class="big" href="#approach" style="--i:1">Approach</a></li><li><a class="big" href="#expertise" style="--i:2">Expertise</a></li><li><a class="big" href="#experience" style="--i:3">Experience</a></li><li><a class="big" href="#research" style="--i:4">Research</a></li><li><a class="big" href="#education" style="--i:5">Education</a></li><li><a class="big" href="#contact" style="--i:6">Contact</a></li><li style="grid-column:1/-1"><a class="big wide" href="Jessie-J-Resume.pdf" style="--i:7" download>Download résumé (PDF)</a></li></ul></nav>
+  <nav aria-label="Sections, mobile"><ul><li><a class="big" href="#about" style="--i:0">About</a></li><li><a class="big" href="#approach" style="--i:1">Approach</a></li><li><a class="big" href="#expertise" style="--i:2">Expertise</a></li><li><a class="big" href="#experience" style="--i:3">Experience</a></li><li><a class="big" href="#research" style="--i:4">Research</a></li><li><a class="big" href="#education" style="--i:5">Education</a></li><li><a class="big" href="#contact" style="--i:6">Contact</a></li><li class="menu-resume" style="--i:7"><a class="btn btn-resume" href="Jessie_Physiotherapist_Resume.pdf" download="Jessie_Physiotherapist_Resume.pdf" type="application/pdf"><span>Download Résumé (PDF)</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a></li></ul></nav>
   <div class="menu-foot"><span>jessieraj57@gmail.com</span><span>+91 79044 27531 · Chennai, India</span></div>
 </div>
 
@@ -554,15 +561,15 @@ ul { margin: 0; padding: 0; list-style: none; }
         </h1>
         <p class="thesis enter" style="--d:3">Bridging the gap between <strong>injury and peak performance</strong>. I help people recover from sports injuries, surgery and neurological conditions, with plans built on careful assessment and a clear route back to everyday activity.</p>
         <div class="hero-actions enter" style="--d:4">
-          <a class="btn primary" href="#experience"><span>View my experience</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-          <a class="btn outline" href="#contact"><span>Contact me</span></a>
-          <a class="btn ghost " href="Jessie-J-Resume.pdf" download><span>Résumé (PDF)</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a>
+          <a class="btn btn-resume" href="Jessie_Physiotherapist_Resume.pdf" download="Jessie_Physiotherapist_Resume.pdf" type="application/pdf"><span>Download Résumé (PDF)</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a>
+          <a class="btn outline" href="#experience"><span>View my experience</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn ghost" href="#contact"><span>Contact me</span></a>
         </div>
         <div class="hero-meta enter" style="--d:5"><div><span class="label">Degree</span><strong>BPT · SIMATS</strong></div><div><span class="label">In practice</span><strong>Since 2022</strong></div><div><span class="label">Languages</span><strong>EN · TA · ML</strong></div></div>
       </div>
       <figure class="hero-visual" style="margin:0">
         <div class="photo-card graph">
-          <img src="assets/jessie.webp" width="820" height="930" alt="Portrait of Jessie J., smiling, wearing a gold silk saree" fetchpriority="high">
+          <img src="assets/jessie.webp" width="820" height="930" alt="Portrait of Jessie, physiotherapist, smiling and wearing a gold silk saree" fetchpriority="high">
           <div class="axis"><span class="label">Physiotherapist</span><span class="label">BPT · 2021–26</span></div>
         </div>
         <span class="tape t1" aria-hidden="true"></span>
@@ -793,7 +800,7 @@ ul { margin: 0; padding: 0; list-style: none; }
           <div class="row"><span class="v" id="c-phone">+91 79044 27531</span>
             <span class="acts"><button class="chip-btn" type="button" data-copy="+91 79044 27531" data-target="c-phone">Copy</button><a class="chip-btn" href="https://wa.me/917904427531" target="_blank" rel="noopener">WhatsApp</a></span></div>
         </div>
-        <div style="margin-top:12px"><a class="btn primary " href="Jessie-J-Resume.pdf" download><span>Download résumé (PDF)</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a></div>
+        <div class="channel-cta"><a class="btn btn-resume" href="Jessie_Physiotherapist_Resume.pdf" download="Jessie_Physiotherapist_Resume.pdf" type="application/pdf"><span>Download Résumé (PDF)</span><svg class="down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a></div>
       </div>
     </div>
   </section>
@@ -801,7 +808,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 <footer class="site-footer">
   <div class="wrap footer-row">
-    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="var(--on-blue)" stroke-width="2"/><rect x="1.5" y="9.6" width="21" height="4.8" rx="2.4" fill="var(--on-blue)" opacity=".38" transform="rotate(-35 12 12)"/><circle cx="12" cy="12" r="1.6" fill="var(--on-blue)"/></svg></span><span>Jessie J.</span></a>
+    <a class="brand" href="#top" aria-label="Jessie - Physiotherapist, back to top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="var(--on-blue)" stroke-width="2"/><rect x="1.5" y="9.6" width="21" height="4.8" rx="2.4" fill="var(--on-blue)" opacity=".38" transform="rotate(-35 12 12)"/><circle cx="12" cy="12" r="1.6" fill="var(--on-blue)"/></svg></span><span class="brand-text"><b>Jessie</b> - Physiotherapist</span></a>
     <span>Physiotherapist · Chennai, India</span>
     <span>© <span id="year">2026</span> Jessie J. · <a href="#top">Back to top ↑</a></span>
   </div>

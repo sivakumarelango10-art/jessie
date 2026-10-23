@@ -3,7 +3,8 @@ import html, math, random
 import content as C
 
 e = html.escape
-RESUME = "Jessie-J-Resume.pdf"
+RESUME = "Jessie_Physiotherapist_Resume.pdf"
+BRAND_NAME = "Jessie - Physiotherapist"
 
 
 def polar(cx, cy, r, deg):
@@ -156,9 +157,20 @@ def orofacial_art():
 
 
 # ---------------------------------------------------------------- page
-def resume_link(cls, label, mode, extra_cls=""):
-    attrs = ' download' if mode == "site" else ' target="_blank" rel="noopener"'
-    return f'<a class="btn {cls} {extra_cls}" href="{RESUME}"{attrs}><span>{e(label)}</span>{DOWN}</a>'
+def resume_button(mode):
+    """The one résumé download control, used everywhere it appears.
+
+    On the deployed site it downloads the PDF under a clear filename. Inside the claude.ai preview the
+    sandbox blocks downloads, so there it opens the same PDF in a new tab instead.
+    """
+    attrs = f' download="{RESUME}" type="application/pdf"' if mode == "site" else ' target="_blank" rel="noopener"'
+    return f'<a class="btn btn-resume" href="{RESUME}"{attrs}><span>Download Résumé (PDF)</span>{DOWN}</a>'
+
+
+def brand(label):
+    """Header and footer branding. Visible text is exactly BRAND_NAME."""
+    return (f'<a class="brand" href="#top" aria-label="{e(BRAND_NAME)}, {label}">{BRAND}'
+            f'<span class="brand-text"><b>Jessie</b> - Physiotherapist</span></a>')
 
 
 def job_card(j):
@@ -184,7 +196,6 @@ def page(mode, photo_src):
     P = C.PERSON
     nav = "".join(f'<a href="#{k}">{e(v)}</a>' for k, v in C.NAV)
     mobile = "".join(f'<li><a class="big" href="#{k}" style="--i:{i}">{e(v)}</a></li>' for i, (k, v) in enumerate(C.NAV))
-    resume_attr = 'download' if mode == "site" else 'target="_blank" rel="noopener"'
     meta = "".join(f'<div><span class="label">{e(k)}</span><strong>{e(v)}</strong></div>' for k, v in C.FACTS)
     band_items = "".join(f"<li>{e(m)}</li>" for m in C.MARQUEE)
     band2 = "".join(f"<li>{e(m)}</li>" for m in reversed(C.MARQUEE))
@@ -227,10 +238,10 @@ def page(mode, photo_src):
 <header class="site-header">
   <div class="wrap">
     <div class="nav-shell">
-      <a class="brand" href="#top" aria-label="Jessie J., back to top">{BRAND}<span>Jessie J.</span></a>
+      {brand("back to top")}
       <nav class="nav-links" aria-label="Sections">{nav}<span class="nav-pill" aria-hidden="true"></span></nav>
       <div class="header-cta">
-        {resume_link("primary", "Résumé", mode, "small")}
+        {resume_button(mode)}
         <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu"><span></span><span></span></button>
       </div>
     </div>
@@ -238,7 +249,7 @@ def page(mode, photo_src):
 </header>
 <div class="scrim" aria-hidden="true"></div>
 <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
-  <nav aria-label="Sections, mobile"><ul>{mobile}<li style="grid-column:1/-1"><a class="big wide" href="{RESUME}" style="--i:{len(C.NAV)}" {resume_attr}>Download résumé (PDF)</a></li></ul></nav>
+  <nav aria-label="Sections, mobile"><ul>{mobile}<li class="menu-resume" style="--i:{len(C.NAV)}">{resume_button(mode)}</li></ul></nav>
   <div class="menu-foot"><span>{e(P["email"])}</span><span>{e(P["phone_display"])} · {e(P["city"])}</span></div>
 </div>
 
@@ -255,15 +266,15 @@ def page(mode, photo_src):
         </h1>
         <p class="thesis enter" style="--d:3">Bridging the gap between <strong>injury and peak performance</strong>. I help people recover from sports injuries, surgery and neurological conditions, with plans built on careful assessment and a clear route back to everyday activity.</p>
         <div class="hero-actions enter" style="--d:4">
-          <a class="btn primary" href="#experience"><span>View my experience</span>{ARROW}</a>
-          <a class="btn outline" href="#contact"><span>Contact me</span></a>
-          {resume_link("ghost", "Résumé (PDF)", mode)}
+          {resume_button(mode)}
+          <a class="btn outline" href="#experience"><span>View my experience</span>{ARROW}</a>
+          <a class="btn ghost" href="#contact"><span>Contact me</span></a>
         </div>
         <div class="hero-meta enter" style="--d:5">{meta}</div>
       </div>
       <figure class="hero-visual" style="margin:0">
         <div class="photo-card graph">
-          <img src="{photo_src}" width="820" height="930" alt="Portrait of Jessie J., smiling, wearing a gold silk saree" fetchpriority="high">
+          <img src="{photo_src}" width="820" height="930" alt="Portrait of Jessie, physiotherapist, smiling and wearing a gold silk saree" fetchpriority="high">
           <div class="axis"><span class="label">Physiotherapist</span><span class="label">BPT · 2021–26</span></div>
         </div>
         <span class="tape t1" aria-hidden="true"></span>
@@ -399,7 +410,7 @@ def page(mode, photo_src):
           <div class="row"><span class="v" id="c-phone">{e(P["phone_display"])}</span>
             <span class="acts"><button class="chip-btn" type="button" data-copy="{e(P["phone_display"])}" data-target="c-phone">Copy</button><a class="chip-btn" href="{P["whatsapp"]}" target="_blank" rel="noopener">WhatsApp</a></span></div>
         </div>
-        <div style="margin-top:12px">{resume_link("primary", "Download résumé (PDF)", mode)}</div>
+        <div class="channel-cta">{resume_button(mode)}</div>
       </div>
     </div>
   </section>
@@ -407,7 +418,7 @@ def page(mode, photo_src):
 
 <footer class="site-footer">
   <div class="wrap footer-row">
-    <a class="brand" href="#top">{BRAND}<span>Jessie J.</span></a>
+    {brand("back to top")}
     <span>Physiotherapist · {e(P["city"])}</span>
     <span>© <span id="year">2026</span> Jessie J. · <a href="#top">Back to top ↑</a></span>
   </div>
