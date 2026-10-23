@@ -250,7 +250,7 @@ def page(mode, photo_src):
       <div class="hero-copy">
         <div class="hero-tag enter" style="--d:0"><span class="status"><i aria-hidden="true"></i>Clinic and home visits · Chennai</span></div>
         <h1 id="hero-title">
-          <span class="line"><span style="--d:1">Jessie J.</span></span>
+          <span class="line"><span style="--d:1">Jessie J</span></span>
           <span class="line"><span class="role" style="--d:2">Physiotherapist in <b>sports &amp; orthopaedic</b> rehabilitation</span></span>
         </h1>
         <p class="thesis enter" style="--d:3">Bridging the gap between <strong>injury and peak performance</strong>. I help people recover from sports injuries, surgery and neurological conditions, with plans built on careful assessment and a clear route back to everyday activity.</p>
