@@ -97,7 +97,8 @@ with sync_playwright() as p:
     run(b, "fonts-blocked", route=[("https://fonts.googleapis.com/**", abort), ("https://fonts.gstatic.com/**", abort)])
     def broken(route):
         resp = route.fetch()
-        route.fulfill(response=resp, body=resp.text().replace('"use strict";\n  const $', 'throw new Error("simulated");\n  const $', 1))
+        head, tail = resp.text().rsplit("<script>", 1)   # the last script is main.js
+        route.fulfill(response=resp, body=head + '<script>throw new Error("simulated");' + tail)
     run(b, "main-script-broken", route=[(URL, broken)])
     run(b, "reduced-motion", reduced=True)
     for (w, h, sc) in ((390, 844, "dark"), (320, 640, "light"), (768, 1024, "dark")):

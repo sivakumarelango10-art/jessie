@@ -89,18 +89,19 @@ BODY_BONES = [
 
 def body_map_svg():
     pos = {k: (x, y) for k, x, y, _ in BODY_MARKERS}
-    bones = "".join(f'<line class="bone" x1="{pos[a][0]}" y1="{pos[a][1]}" x2="{pos[b][0]}" y2="{pos[b][1]}"/>' for a, b in BODY_BONES)
-    bones += ('<line class="bone" x1="100" y1="51" x2="100" y2="62"/>'
-              '<path class="bone" d="M78 306 L66 318 M122 306 L134 318 M51 165 L48 180 M149 165 L152 180"/>')
+    bones = "".join(f'<line class="bone" pathLength="1" style="--bi:{i}" x1="{pos[a][0]}" y1="{pos[a][1]}" x2="{pos[b][0]}" y2="{pos[b][1]}"/>'
+                    for i, (a, b) in enumerate(BODY_BONES))
+    bones += ('<line class="bone" pathLength="1" style="--bi:0" x1="100" y1="51" x2="100" y2="62"/>'
+              '<path class="bone" pathLength="1" style="--bi:9" d="M78 306 L66 318 M122 306 L134 318 M51 165 L48 180 M149 165 L152 180"/>')
     marks = []
     for k, x, y, areas in BODY_MARKERS:
         if k == "head":
             marks.append(f'<circle class="head" cx="{x}" cy="{y}" r="17"/>')
             marks.append(f'<circle class="halo" data-areas="{areas}" cx="{x}" cy="{y}" r="10"/>'
-                         f'<circle class="mk" data-areas="{areas}" cx="{x}" cy="{y}" r="5.5"/>')
+                         f'<circle class="mk" style="--mi:0" data-areas="{areas}" cx="{x}" cy="{y}" r="5.5"/>')
             continue
         marks.append(f'<circle class="halo" data-areas="{areas}" cx="{x}" cy="{y}" r="9"/>'
-                     f'<circle class="mk" data-areas="{areas}" cx="{x}" cy="{y}" r="5.5"/>')
+                     f'<circle class="mk" style="--mi:{len(marks)}" data-areas="{areas}" cx="{x}" cy="{y}" r="5.5"/>')
     return ('<svg viewBox="20 6 160 330" role="img" aria-label="Body map showing the joints each area of care focuses on">'
             '<line class="ground" x1="30" y1="324" x2="170" y2="324" stroke-width="1.5"/>'
             '<ellipse class="sway" data-areas="lifespan neuro" cx="100" cy="324" rx="40" ry="8"/>'
@@ -194,8 +195,18 @@ def loader(loader_js):
   </div>
 </div>
 <script>{loader_js}</script>
-<noscript><style>#loader{{display:none}}</style></noscript>
+<noscript><style>#loader{{display:none}}.hero.is-held *{{animation-play-state:running!important}}</style></noscript>
 """
+
+
+def portrait(src):
+    alt = "Portrait of Jessie, physiotherapist, smiling and wearing a gold silk saree"
+    if isinstance(src, str):
+        return f'<img src="{src}" width="820" height="930" alt="{alt}" fetchpriority="high" decoding="async">'
+    sizes = "(max-width: 960px) min(82vw, 420px), 500px"
+    return (f'<picture><source type="image/avif" srcset="{src["avif"]}" sizes="{sizes}">'
+            f'<source type="image/webp" srcset="{src["webp"]}" sizes="{sizes}">'
+            f'<img src="{src["fallback"]}" width="820" height="930" alt="{alt}" fetchpriority="high" decoding="async"></picture>')
 
 
 def resume_button(mode):
@@ -217,7 +228,7 @@ def brand(label):
 def job_card(j):
     bullets = "".join(f"<li>{e(b)}</li>" for b in j["bullets"])
     return f'''
-        <article class="job" data-reveal>
+        <article class="job spot" data-reveal>
           <div class="job-top"><h4>{e(j["role"])}</h4><span class="dates">{e(j["dates"])}</span></div>
           <p class="where">{e(j["org"])} · {e(j["place"])}</p>
           <p class="summary">{e(j["summary"])}</p>
@@ -228,9 +239,16 @@ def job_card(j):
         </article>'''
 
 
+def words(text, start=0):
+    """Wrap each word for the rise-in animation. Real spaces stay between words so lines wrap normally."""
+    return " ".join(f'<span class="w" aria-hidden="true"><span style="--wi:{start + i}">{e(wd)}</span></span>'
+                    for i, wd in enumerate(text.split()))
+
+
 def section_head(label, title, tid, text=""):
     p = f"<p>{text}</p>" if text else ""
-    return f'<div class="section-head" data-reveal><span class="label">{e(label)}</span><h2 id="{tid}">{title}</h2>{p}</div>'
+    return (f'<div class="section-head" data-reveal><span class="label">{e(label)}</span>'
+            f'<h2 id="{tid}" aria-label="{e(title)}">{words(title)}</h2>{p}</div>')
 
 
 def page(mode, photo_src):
@@ -240,6 +258,7 @@ def page(mode, photo_src):
     meta = "".join(f'<div><span class="label">{e(k)}</span><strong>{e(v)}</strong></div>' for k, v in C.FACTS)
     band_items = "".join(f"<li>{e(m)}</li>" for m in C.MARQUEE)
     band2 = "".join(f"<li>{e(m)}</li>" for m in reversed(C.MARQUEE))
+    path_items = "".join(f"<li>{e(st['title'])}</li>" for st in C.STAGES) * 2
     tabs = "".join(
         f'<button type="button" role="tab" id="tab-{s["key"]}" aria-controls="stage-panel" '
         f'aria-selected="{"true" if i == 0 else "false"}" tabindex="{0 if i == 0 else -1}">{e(s["title"])}</button>'
@@ -258,16 +277,16 @@ def page(mode, photo_src):
     arts = {"knee": knee_art(), "parkinsons": orofacial_art()}
     tags = {"knee": "Orthopaedics · Balance", "parkinsons": "Neurology · Oral motor"}
     studies = "".join(f'''
-          <article class="study" data-reveal style="--d:{i}">
+          <article class="study spot" data-reveal style="--d:{i}">
             <div class="study-art graph"><div class="zoom">{arts[s["key"]]}</div><span class="tag label">{tags[s["key"]]}</span><span class="note label">Illustration</span></div>
             <div class="study-body">
               <h3>{e(s["title"])}</h3>
               <p>{e(s["lead"])}</p>
-              <dl>{"".join(f"<div><dt>{e(k)}</dt><dd>{e(v)}</dd></div>" for k, v in s["rows"])}</dl>
+              <dl data-stagger>{"".join(f"<div><dt>{e(k)}</dt><dd>{e(v)}</dd></div>" for k, v in s["rows"])}</dl>
             </div>
           </article>''' for i, s in enumerate(C.RESEARCH))
     schools = "".join(f'''
-            <div class="school{" primary" if i == 0 else ""}" data-reveal style="--d:{i}">
+            <div class="school spot{" primary" if i == 0 else ""}" data-reveal style="--d:{i}">
               <span class="label">{e(y)}</span><h3>{e(deg)}</h3><p>{e(sch)}, {e(loc)}</p>
             </div>''' for i, (y, deg, sch, loc) in enumerate(C.EDUCATION))
     certs = "".join(f'<li class="cert"><span class="strip">{e(n)}</span><p>{e(d)}</p></li>' for n, d in C.CERTIFICATIONS)
@@ -295,7 +314,7 @@ def page(mode, photo_src):
 </div>
 
 <main id="main">
-  <section class="hero" id="top" aria-labelledby="hero-title">
+  <section class="hero is-held" id="top" aria-labelledby="hero-title">
     <div class="hero-bg graph" aria-hidden="true"></div>
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="wrap hero-grid">
@@ -315,7 +334,7 @@ def page(mode, photo_src):
       </div>
       <figure class="hero-visual" style="margin:0">
         <div class="photo-card graph">
-          <img src="{photo_src}" width="820" height="930" alt="Portrait of Jessie, physiotherapist, smiling and wearing a gold silk saree" fetchpriority="high">
+          {portrait(photo_src)}
           <div class="axis"><span class="label">Physiotherapist</span><span class="label">BPT · 2021–26</span></div>
         </div>
         <span class="tape t1" aria-hidden="true"></span>
@@ -358,7 +377,7 @@ def page(mode, photo_src):
           <p>“Driven to bridge the gap between injury and peak performance through targeted rehab and patient education.”</p>
           <span class="label">From my professional profile</span>
         </div>
-        <div data-reveal style="display:grid;gap:12px"><span class="label">Languages</span><ul class="langs">{langs}</ul></div>
+        <div data-reveal style="display:grid;gap:12px"><span class="label">Languages</span><ul class="langs" data-stagger>{langs}</ul></div>
       </div>
     </div>
   </section>
@@ -400,7 +419,7 @@ def page(mode, photo_src):
     <div class="wrap">
       <div class="exp-head">
         {section_head("Experience", "Clinic, rehab centre, home and hospital.", "experience-title", "In practice since 2022, with hospital internships alongside my degree.")}
-        <div class="rotations" data-reveal><span class="label">Undergraduate clinical rotations</span><ul>{rotations}</ul></div>
+        <div class="rotations" data-reveal><span class="label">Undergraduate clinical rotations</span><ul data-stagger>{rotations}</ul></div>
       </div>
       <div class="timeline" id="timeline">
         <div class="rail" aria-hidden="true"><i></i></div>
@@ -426,27 +445,32 @@ def page(mode, photo_src):
         <div class="schools" id="schools"><div class="rail" aria-hidden="true"><i></i></div>{schools}</div>
         <div class="certs" data-reveal style="--d:1">
           <h3>Certifications</h3>
-          <ul style="display:grid;gap:22px">{certs}</ul>
+          <ul style="display:grid;gap:22px" data-stagger>{certs}</ul>
         </div>
       </div>
     </div>
   </section>
+
+  <div class="tape-band pathway" aria-label="Care pathway">
+    <div class="band b2" aria-hidden="true"><div class="band-track"><ul>{path_items}</ul><ul>{path_items}</ul></div></div>
+    <div class="band b1"><div class="band-track"><ul>{path_items}</ul><ul aria-hidden="true">{path_items}</ul></div></div>
+  </div>
 
   <section class="section contact" id="contact" aria-labelledby="contact-title">
     <span class="tape c1" aria-hidden="true"></span><span class="tape coral c2" aria-hidden="true"></span>
     <div class="wrap contact-grid">
       <div data-reveal>
         <div class="section-head" style="margin-bottom:0"><span class="label">Contact</span>
-        <h2 id="contact-title">Let's get you <span class="mark">moving.</span></h2></div>
+        <h2 id="contact-title" aria-label="Let's get you moving.">{words("Let's get you")} <span class="mark" aria-hidden="true"><span class="w"><span style="--wi:3">moving.</span></span></span></h2></div>
         <p class="lead">For consultations, home visits or professional opportunities, email or call me. I'm based in Chennai and see patients in the clinic and at home.</p>
       </div>
       <div class="channels" data-reveal style="--d:1">
-        <div class="channel">
+        <div class="channel spot">
           <span class="label">Email</span>
           <div class="row"><span class="v" id="c-email">{e(P["email"])}</span>
             <span class="acts"><button class="chip-btn" type="button" data-copy="{e(P["email"])}" data-target="c-email">Copy</button><a class="chip-btn" href="mailto:{e(P["email"])}">Write</a></span></div>
         </div>
-        <div class="channel">
+        <div class="channel spot">
           <span class="label">Phone and WhatsApp</span>
           <div class="row"><span class="v" id="c-phone">{e(P["phone_display"])}</span>
             <span class="acts"><button class="chip-btn" type="button" data-copy="{e(P["phone_display"])}" data-target="c-phone">Copy</button><a class="chip-btn" href="{P["whatsapp"]}" target="_blank" rel="noopener">WhatsApp</a></span></div>
@@ -464,5 +488,9 @@ def page(mode, photo_src):
     <span>© <span id="year">2026</span> Jessie J. · <a href="#top">Back to top ↑</a></span>
   </div>
 </footer>
+<button class="to-top" type="button" aria-label="Back to top" tabindex="-1">
+  <svg viewBox="0 0 56 56" aria-hidden="true"><g class="tt-ticks"><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(0 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(45 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(90 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(135 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(180 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(225 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(270 28 28)"/><line x1="28" y1="3.5" x2="28" y2="7" transform="rotate(315 28 28)"/></g><circle class="tt-track" cx="28" cy="28" r="22"/><circle class="tt-fill" cx="28" cy="28" r="22"/>
+  <g class="tt-needle"><line x1="28" y1="28" x2="28" y2="12"/></g><circle class="tt-hub" cx="28" cy="28" r="3"/><path class="tt-arrow" d="M23 33 L28 28 L33 33"/></svg>
+</button>
 <div class="toast" role="status" aria-live="polite"></div>
 '''

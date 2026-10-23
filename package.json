@@ -1,0 +1,12 @@
+{
+  "name": "jessie-physiotherapist",
+  "private": true,
+  "description": "Static portfolio for Jessie - Physiotherapist. The site is prebuilt into dist/site; Vercel serves it with no build step.",
+  "scripts": {
+    "build": "python3 build.py",
+    "fonts": "python3 scripts/make_fonts.py node_modules"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.2"
+  }
+}

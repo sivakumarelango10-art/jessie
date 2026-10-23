@@ -140,7 +140,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 .hero-copy { display: grid; gap: 26px; min-width: 0; }
 .hero-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 0.8rem; font-weight: 600; }
-.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.status i { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.status i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--blue); opacity: 0; }
 .hero h1 { font-size: var(--t-hero); font-weight: 740; line-height: 0.88; letter-spacing: -0.04em; font-variation-settings: "wdth" 82; margin-left: -0.03em; }
 .hero h1 .line { display: block; overflow: hidden; padding-block: 0.02em 0.07em; }
 .hero h1 .line > span { display: inline-block; }
@@ -249,7 +250,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .stage-steps { display: flex; gap: 6px; }
 .stage-steps i { height: 4px; flex: 1; border-radius: 2px; background: var(--surface-2); transition: background-color .45s var(--ease); }
 .stage-steps i.on { background: var(--blue); }
-@keyframes swapIn { from { opacity: 0; transform: translateY(12px); filter: blur(4px); } }
+@keyframes swapIn { from { opacity: 0; transform: translateY(12px); } }
 @media (max-width: 900px) { .approach-grid { grid-template-columns: 1fr; } .stage-panel { min-height: 0; } }
 
 /* ---------- Expertise: interactive body map ---------- */
@@ -418,14 +419,14 @@ ul { margin: 0; padding: 0; list-style: none; }
 @media (prefers-reduced-motion: no-preference) {
   .enter { animation: rise 1s var(--ease) both; animation-delay: calc(var(--d, 0) * 90ms + 100ms); }
   .hero h1 .line > span { animation: lineUp 1.15s var(--ease) both; animation-delay: calc(var(--d, 0) * 110ms + 60ms); }
-  .photo-card { animation: cardIn 1.3s var(--ease) both .2s; }
+  .photo-card::before { content: ""; position: absolute; inset: -1px; z-index: 6; background: var(--bg); transform-origin: top; animation: curtain 1.25s var(--ease-io) both .15s; pointer-events: none; }
   .photo-card img { animation: photoIn 1.5s var(--ease) both .45s; }
   .hero-visual .tape { animation: stick .9s var(--ease) both; }
   .hero-visual .tape.t1 { animation-delay: 1.05s; }
   .hero-visual .tape.t2 { animation-delay: 1.25s; }
   .gait-card { animation: rise 1s var(--ease) both .85s; }
   .hero-glow { animation: drift 18s var(--ease-io) infinite alternate; }
-  .status i { animation: ping 2.4s var(--ease) infinite; }
+  .status i::after { animation: ping 2.4s var(--ease) infinite; }
   .reveal-pending { opacity: 0; transform: translateY(32px); }
   .reveal-pending.revealed { opacity: 1; transform: none; transition: opacity 1s var(--ease), transform 1s var(--ease); transition-delay: calc(var(--d, 0) * 90ms); }
   .study-art .draw.pending { stroke-dashoffset: var(--len); }
@@ -437,14 +438,123 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 @keyframes rise { from { opacity: 0; transform: translateY(24px); } }
 @keyframes lineUp { from { transform: translateY(108%); } }
-@keyframes cardIn { from { clip-path: inset(100% 0 0 0 round 28px); } to { clip-path: inset(0 0 0 0 round 28px); } }
+@keyframes curtain { from { transform: scaleY(1); } to { transform: scaleY(0); } }
 @keyframes photoIn { from { opacity: 0; transform: translateY(36px) scale(1.06); } }
 @keyframes stick { from { transform: scaleX(0); } }
 @keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(-6%, 8%) scale(1.12); } }
-@keyframes ping { 0% { box-shadow: 0 0 0 0 var(--blue-soft); } 70%, 100% { box-shadow: 0 0 0 9px transparent; } }
+@keyframes ping { 0% { transform: scale(1); opacity: .55; } 75%, 100% { transform: scale(3.2); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .band-track { animation: none; }
   .body-map .halo.on { animation: none; opacity: .5; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+
+/* =====================================================================================
+   Motion and polish layer
+   ===================================================================================== */
+
+/* JS drives the tape bands (speed follows scrolling); the CSS loop stays as the no-JS fallback */
+.tape-band.pathway .b1 { background-color: var(--coral); color: #15161a; top: 28%; rotate: 2.2deg; }
+.tape-band.pathway .b2 { background-color: var(--blue); color: var(--on-blue); top: 42%; rotate: -2.6deg; z-index: 1; }
+
+/* looping animations rest while their section is off screen */
+.is-off .hero-glow, .is-off .status i::after, .is-off .halo.on, .is-off .band-track { animation-play-state: paused; }
+
+/* headings: each word rises out of its own mask */
+.w { display: inline-block; overflow: clip; overflow-clip-margin: 0.12em; vertical-align: top; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.w > span { display: inline-block; }
+
+/* soft spotlight that follows the pointer across cards */
+.spot { position: relative; isolation: isolate; }
+.spot::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; opacity: 0;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--blue) 11%, transparent), transparent 65%);
+  transition: opacity .5s var(--ease);
+}
+.spot:hover::after { opacity: 1; }
+.spot > * { position: relative; z-index: 1; }
+.study.spot > * { z-index: auto; }
+.channel.spot::after, .school.primary.spot::after {
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--blue) 26%, transparent), transparent 65%);
+}
+
+/* magnetic buttons ease back when released */
+.btn-resume, .btn.outline { transition: color .45s var(--ease), border-color .45s var(--ease), transform .25s var(--ease), translate .5s var(--ease); }
+
+/* body-map caption crossfades */
+.body-map .caption.swap { animation: swapIn .5s var(--ease); }
+
+/* back to top: a goniometer ring that fills as you read */
+.to-top {
+  position: fixed; z-index: 40; width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--line); padding: 0; cursor: pointer;
+  right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--surface) 88%, transparent); color: var(--ink); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  opacity: 0; transform: translateY(16px) scale(.9); pointer-events: none;
+  transition: opacity .45s var(--ease), transform .45s var(--ease), translate .5s var(--ease), background-color .3s;
+}
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { background: var(--surface); }
+.to-top svg { width: 100%; height: 100%; display: block; }
+.to-top .tt-ticks line { stroke: var(--muted); stroke-width: 1.2; opacity: .6; }
+.to-top .tt-track { fill: none; stroke: var(--line); stroke-width: 3; }
+.to-top .tt-fill { fill: none; stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 138.2; stroke-dashoffset: 138.2; transform: rotate(-90deg); transform-origin: 28px 28px; }
+.to-top .tt-needle { transform-origin: 28px 28px; }
+.to-top .tt-needle line { stroke: var(--coral); stroke-width: 2; stroke-linecap: round; }
+.to-top .tt-hub { fill: var(--ink); }
+.to-top .tt-arrow { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: translateY(4px); transition: opacity .3s, transform .3s var(--ease); }
+.to-top:hover .tt-arrow, .to-top:focus-visible .tt-arrow { opacity: 1; transform: none; }
+.to-top:hover .tt-needle, .to-top:focus-visible .tt-needle { opacity: 0; }
+.to-top .tt-needle { transition: opacity .3s; }
+@media (max-width: 520px) { .to-top { width: 48px; height: 48px; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* section label: the tape mark stretches in */
+  .section-head.reveal-pending .label::before { transform: scaleX(0); transform-origin: left; }
+  .section-head.reveal-pending.revealed .label::before { transform: none; transition: transform .8s var(--ease) .1s; }
+  .reveal-pending .w > span { transform: translateY(105%); }
+  .reveal-pending.revealed .w > span { transform: none; transition: transform .9s var(--ease); transition-delay: calc(var(--wi, 0) * 70ms + 80ms); }
+  .contact h2 .mark.pending .w > span { transform: translateY(105%); }
+  .contact h2 .mark.pending.stuck .w > span { transform: none; transition: transform .9s var(--ease) .21s; }
+
+  /* groups: children follow one another */
+  .reveal-pending [data-stagger] > * { opacity: 0; transform: translateY(12px); }
+  .reveal-pending.revealed [data-stagger] > * { opacity: 1; transform: none; transition: opacity .6s var(--ease), transform .6s var(--ease); transition-delay: calc(var(--si, 0) * 60ms + 220ms); }
+
+  /* body map: the skeleton draws itself, then the markers appear head to toe */
+  .body-map .bone { stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .body-map .mk { transform-box: fill-box; transform-origin: center; }
+  .body-map.reveal-pending .bone { stroke-dashoffset: 1; }
+  .body-map.reveal-pending.revealed .bone { stroke-dashoffset: 0; transition: stroke-dashoffset .9s var(--ease); transition-delay: calc(var(--bi, 0) * 60ms + 150ms); }
+
+  /* timeline cards slide out from the rail */
+  .timeline .job.reveal-pending { transform: translate(-18px, 18px); }
+  .timeline .job.reveal-pending.revealed { transform: none; }
+  .job.lit::before { animation: dotPop .6s var(--ease); }
+
+  /* research cards: art panel eases in slightly larger */
+  .study.reveal-pending .study-art .zoom { transform: scale(1.08); }
+  .study.reveal-pending.revealed .study-art .zoom { transform: none; transition: transform 1.4s var(--ease) .1s; }
+  .study.reveal-pending.revealed:hover .study-art .zoom { transform: scale(1.06); }
+
+  .hero-visual { will-change: transform; }
+}
+@keyframes dotPop { 50% { transform: scale(1.5); } }
+@media (prefers-reduced-motion: reduce) {
+  .to-top { transition: opacity .2s linear; transform: none; }
+  .tape-band .band-track { animation: none; }
+}
+/* keep hover lifts working after a card has been revealed */
+.study.reveal-pending.revealed:hover { transform: translateY(-6px); }
+.timeline .job.reveal-pending.revealed:hover { transform: translateX(4px); }
+
+/* Lighter motion on phones and touch screens: keep the section fades, drop the per-element extras
+   that cost the most frames on low-powered devices (measured). */
+@media (prefers-reduced-motion: no-preference) and ((hover: none) or (max-width: 760px)) {
+  .reveal-pending .w > span, .reveal-pending.revealed .w > span { transform: none; transition: none; }
+  .timeline .job.reveal-pending { transform: translateY(24px); }
+  .study.reveal-pending .study-art .zoom { transform: none; }
+  .section-head.reveal-pending .label::before { transform: none; }
 }

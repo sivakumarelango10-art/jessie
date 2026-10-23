@@ -5,8 +5,7 @@
  *
  *   page sections   one task per section; a section counts once the next one has arrived (or the
  *                   document has finished parsing), i.e. once it is fully in the page
- *   font stylesheet the Google Fonts CSS
- *   typefaces       each weight/family the site uses, via document.fonts.load()
+ *   typefaces       each self-hosted typeface the site uses, via document.fonts.load()
  *   portrait        the hero photo downloaded and decoded
  *   interactive     main.js finished setting up navigation, dial, body map, canvases (it calls done("init"))
  *
@@ -19,23 +18,20 @@
   "use strict";
   var doc = document, root = doc.documentElement, el = doc.getElementById("loader");
   if (!el) return;
-  root.classList.add("is-loading");
+  root.style.overflow = "hidden";   // scroll lock while covered (scrollbar-gutter keeps the layout still)
   var reduce = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
   var pctNum = el.querySelector(".ld-pct b"), bar = el.querySelector(".ld-bar i"), status = el.querySelector(".ld-status"),
       meter = el.querySelector(".ld-progress"), shank = el.querySelector(".ld-shank"), arc = el.querySelector(".ld-arc");
   var ARC = 50.3, RANGE = 90; // knee travels from 90° flexion to full extension
 
   var SECTIONS = ["#top", "#about", "#approach", "#expertise", "#experience", "#research", "#education", "#contact", ".site-footer"];
-  var FONTS = [
-    ['700 40px "Bricolage Grotesque"', "display-bold"], ['500 40px "Bricolage Grotesque"', "display"],
-    ['400 16px "Plus Jakarta Sans"', "body"], ['600 16px "Plus Jakarta Sans"', "body-bold"],
-    ['500 12px "IBM Plex Mono"', "labels"]
+  var FONTS = [   // [descriptor, key, weight]: one self-hosted file each
+    ['700 40px "Bricolage Grotesque"', "display", 12], ['400 16px "Plus Jakarta Sans"', "body", 10], ['500 12px "IBM Plex Mono"', "labels", 7]
   ];
   var tasks = [], byKey = {};
   function add(key, weight, label) { var t = { key: key, w: weight, label: label, done: false, failed: false }; tasks.push(t); byKey[key] = t; }
   SECTIONS.forEach(function (s) { add("section:" + s, 4, "Building the page"); });
-  add("font-css", 4, "Loading typefaces");
-  FONTS.forEach(function (f) { add("font:" + f[1], 5, "Loading typefaces"); });
+  FONTS.forEach(function (f) { add("font:" + f[1], f[2], "Loading typefaces"); });
   add("portrait", 21, "Loading portrait");
   add("init", 14, "Setting up interactive sections");
 
@@ -51,7 +47,7 @@
     var v = sum === tot ? 100 : Math.floor((sum / tot) * 100);
     if (v > target) target = v;
     log.push({ t: Math.round(performance.now() - t0), key: key, failed: !!failed, target: target });
-    if (key === "font:display-bold") showName();
+    if (key === "font:display") showName();
     var next = null;
     for (var j = 0; j < tasks.length; j++) if (!tasks[j].done) { next = tasks[j]; break; }
     if (next) status.textContent = next.label; // "Ready" only once the number itself reaches 100
@@ -62,14 +58,18 @@
   var nameAt = 0;
   function showName() { if (!nameAt) { nameAt = performance.now(); el.classList.add("text-in"); } }
 
+  var lastInt = -1;
   function render(v) {
     var shownInt = Math.floor(v);
-    pctNum.textContent = String(shownInt);
     bar.style.transform = "scaleX(" + (v / 100).toFixed(4) + ")";
     shank.style.transform = "rotate(" + (-RANGE * v / 100).toFixed(2) + "deg)";
     arc.style.strokeDashoffset = (ARC * (1 - v / 100)).toFixed(2);
-    meter.setAttribute("aria-valuenow", String(shownInt));
-    meter.setAttribute("aria-valuetext", shownInt + "%, " + status.textContent.toLowerCase());
+    if (shownInt !== lastInt) {   // text and ARIA only when the whole number changes
+      lastInt = shownInt;
+      pctNum.textContent = String(shownInt);
+      meter.setAttribute("aria-valuenow", String(shownInt));
+      meter.setAttribute("aria-valuetext", shownInt + "%, " + status.textContent.toLowerCase());
+    }
   }
   function frame(now) {
     raf = 0;
@@ -100,9 +100,12 @@
     timers.forEach(clearTimeout);
     if (raf) cancelAnimationFrame(raf);
     el.classList.add("leaving");
-    root.classList.remove("is-loading");
+    root.style.overflow = "";
+    var hero = doc.querySelector(".hero.is-held");
+    if (hero) hero.classList.remove("is-held");   // only the hero restyles, not the whole page
     var main = doc.getElementById("main");
     if (main) main.removeAttribute("aria-busy");
+    try { window.dispatchEvent(new Event("portfolio:revealed")); } catch (e) { /* very old browsers */ }
     var remove = function () { if (el.parentNode) el.parentNode.removeChild(el); };
     el.addEventListener("transitionend", function (ev) { if (ev.target === el && ev.propertyName === "opacity") remove(); });
     setTimeout(remove, 1200);
@@ -145,28 +148,14 @@
   function onParsed() { if (mo) { mo.disconnect(); mo = null; } scanSections(true); }
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", onParsed, { once: true }); else onParsed();
 
-  /* ---- fonts: the stylesheet loads without blocking paint, then each face the site uses ---- */
-  var link = doc.getElementById("font-css");
-  var fontsStarted = false;
-  function loadFaces() {
-    if (fontsStarted) return; fontsStarted = true;
-    if (link) link.media = "all";
-    if (!doc.fonts || !doc.fonts.load) { FONTS.forEach(function (f) { close("font:" + f[1], true); }); return; }
-    FONTS.forEach(function (f) {
-      doc.fonts.load(f[0], "Jessie - Physiotherapist 0123456789%").then(
-        function (faces) { close("font:" + f[1], !faces || !faces.length); },
-        function () { close("font:" + f[1], true); });
-      later(12000, function () { close("font:" + f[1], true); });
-    });
-  }
-  function cssLoaded(failed) { close("font-css", failed); loadFaces(); }
-  if (!link) cssLoaded(true);
-  else if (link.sheet) cssLoaded(false);
-  else {
-    link.addEventListener("load", function () { cssLoaded(false); }, { once: true });
-    link.addEventListener("error", function () { cssLoaded(true); }, { once: true });
-    later(12000, function () { cssLoaded(true); });
-  }
+  /* ---- fonts: self-hosted and declared in the critical CSS, so they can be requested straight away ---- */
+  if (!doc.fonts || !doc.fonts.load) FONTS.forEach(function (f) { close("font:" + f[1], true); });
+  else FONTS.forEach(function (f) {
+    doc.fonts.load(f[0], "Jessie - Physiotherapist 0123456789%").then(
+      function (faces) { close("font:" + f[1], !faces || !faces.length); },
+      function () { close("font:" + f[1], true); });
+    later(12000, function () { close("font:" + f[1], true); });
+  });
 
   /* ---- interactive setup: main.js reports in; if it never does, don't wait for it ---- */
   window.addEventListener("load", function () { later(2500, function () { close("init", true); }); }, { once: true });

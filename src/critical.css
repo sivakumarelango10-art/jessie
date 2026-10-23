@@ -57,8 +57,12 @@
 }
 
 /* ---------- Critical: paints with the very first bytes, before the main stylesheet ---------- */
+/* Self-hosted, Latin-subset typefaces (build.py fills in the URLs). Bricolage keeps its weight and width axes;
+   its optical size is fixed for display use, which halves the file. */
+@font-face { font-family: "Bricolage Grotesque"; src: url("{{FONT_DISPLAY}}") format("woff2"); font-weight: 400 800; font-stretch: 75% 100%; font-display: swap; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url("{{FONT_BODY}}") format("woff2"); font-weight: 200 800; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("{{FONT_LABELS}}") format("woff2"); font-weight: 500; font-display: swap; }
 html { background: var(--bg); scrollbar-gutter: stable; }
-html.is-loading { overflow: hidden; }
 body { margin: 0; background: var(--bg); }
 
 /* ---------- Loading screen ----------
@@ -113,9 +117,9 @@ body { margin: 0; background: var(--bg); }
   .ld-brand .ch { transform: translateY(110%); }
   .loader.text-in .ld-brand .ch { animation: chUp .55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 14ms); }
   .loader.complete .ld-knee { animation: kneePulse .5s cubic-bezier(0.22, 1, 0.36, 1); transform-box: fill-box; transform-origin: center; }
-  /* the hero entrance waits behind the loader, then plays as it lifts */
-  html.is-loading .enter, html.is-loading .hero h1 .line > span, html.is-loading .photo-card, html.is-loading .photo-card img,
-  html.is-loading .hero-visual .tape, html.is-loading .gait-card { animation-play-state: paused; }
+  /* the hero entrance waits behind the loader, then plays as it lifts (scoped to the hero, so lifting restyles only it) */
+  .hero.is-held .enter, .hero.is-held h1 .line > span, .hero.is-held .photo-card::before, .hero.is-held .photo-card img,
+  .hero.is-held .hero-visual .tape, .hero.is-held .gait-card { animation-play-state: paused; }
 }
 @keyframes chUp { from { transform: translateY(110%); } to { transform: none; } }
 @keyframes ldIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }

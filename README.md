@@ -40,7 +40,15 @@ Set `SITE_URL` if the site is served elsewhere. `scripts/check.py` takes full-pa
 
 ## Notes
 
-- Fonts: Bricolage Grotesque (display), Plus Jakarta Sans (body) and IBM Plex Mono (labels) from Google Fonts.
+- Fonts are self-hosted from `src/assets/fonts` (Latin subsets; Bricolage keeps its weight and width axes with optical
+  size fixed). Regenerate with `npm i @fontsource-variable/bricolage-grotesque @fontsource-variable/plus-jakarta-sans
+  @fontsource/ibm-plex-mono && npm run fonts`.
+- `npm i && npm run build` minifies CSS/JS with esbuild; without it the build still works, unminified. Images and fonts
+  get content-hashed names and are cached for a year by `vercel.json`; the portrait ships as AVIF/WebP at 480/760/1040px.
+- Motion: heading words rise in, short lists stagger, the body map draws itself, tape bands drift (and lean with scroll
+  speed on desktop), the hero tilts toward the pointer, cards carry a pointer spotlight, and a goniometer ring shows reading
+  progress and returns to the top. Phones get a lighter set; reduced-motion users get none. All effects use transforms
+  and opacity; positions are measured once, not while scrolling.
 - Markup lives in `src/markup.py`; the first design is kept in `archive/v1/` for reference.
 - Loading screen (`src/loader.js`, styles in `src/critical.css`): real 0–100% progress, weighted by actual tasks:
   each page section arriving (36), the font stylesheet (4), each of five typefaces (25), the portrait (21) and the
