@@ -51,7 +51,7 @@ Set `SITE_URL` if the site is served elsewhere. `scripts/check.py` takes full-pa
   and opacity; positions are measured once, not while scrolling.
 - Markup lives in `src/markup.py`; the first design is kept in `archive/v1/` for reference.
 - Loading screen (`src/loader.js`, styles in `src/critical.css`): real 0–100% progress, weighted by actual tasks:
-  each page section arriving (36), the font stylesheet (4), each of five typefaces (25), the portrait (21) and the
+  each page section arriving (36), each of the three self-hosted typefaces (29), the portrait (21) and the
   interactive setup in main.js (14). No timer moves the number; failed or stalled tasks close via timeouts so the page
   always opens. The knee extends from 90° to straight as progress climbs. Critical CSS and the loader come first in
   the HTML so it paints within the first ~10 KB; fonts load without blocking. Skipped entirely without JavaScript.
