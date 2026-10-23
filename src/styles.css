@@ -145,7 +145,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .hero h1 .line { display: block; overflow: hidden; padding-block: 0.02em 0.07em; }
 .hero h1 .line > span { display: inline-block; }
 .hero h1 .role { font-size: 0.3em; font-weight: 500; letter-spacing: -0.03em; line-height: 1.1; color: var(--muted); margin-top: 0.12em; font-variation-settings: "wdth" 96; }
-.hero h1 .role b { font-weight: 650; color: var(--blue); }
+.hero h1 .role b { font-weight: 650; color: var(--blue); white-space: nowrap; }
 .hero .thesis { font-size: var(--t-lead); line-height: 1.6; color: var(--muted); max-width: 46ch; }
 .hero .thesis strong { color: var(--ink); font-weight: 600; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; }
