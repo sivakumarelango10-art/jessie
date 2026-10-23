@@ -93,7 +93,7 @@ with sync_playwright() as p:
     run(b, "slow-network", throttle={"offline": False, "latency": 400, "downloadThroughput": 50 * 1024, "uploadThroughput": 20 * 1024},
         shot=(1500, 3500, 6000))
     def abort(route): route.abort()
-    run(b, "portrait-fails", route=[("**/jessie.webp", abort)])
+    run(b, "portrait-fails", route=[("**/assets/jessie-*", abort)])
     run(b, "fonts-blocked", route=[("https://fonts.googleapis.com/**", abort), ("https://fonts.gstatic.com/**", abort)])
     def broken(route):
         resp = route.fetch()

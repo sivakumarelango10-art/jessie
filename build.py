@@ -56,7 +56,7 @@ def hashed(out_dir, name, data):
 def portrait_variants():
     """Responsive AVIF + WebP renditions of the cut-out portrait."""
     from PIL import Image
-    master = Image.open(SRC / "assets" / "jessie-cutout-master.webp").convert("RGBA")
+    master = Image.open(SRC / "assets" / "jessie-portrait-master.webp").convert("RGB")
     out = {}
     for w in PORTRAIT_WIDTHS:
         im = master.resize((w, round(master.height * w / master.width)), Image.LANCZOS)
@@ -67,16 +67,17 @@ def portrait_variants():
 
 
 def make_og():
-    """Link-preview image: porcelain card with the portrait on a tape-blue panel."""
+    """Link-preview image: porcelain card with the portrait in a rounded frame."""
     from PIL import Image, ImageDraw
     og = Image.new("RGB", (1200, 630), (244, 243, 239))
     d = ImageDraw.Draw(og)
     for x in range(0, 1200, 32): d.line([(x, 0), (x, 630)], fill=(232, 231, 226))
     for y in range(0, 630, 32): d.line([(0, y), (1200, y)], fill=(232, 231, 226))
-    d.rounded_rectangle((690, 40, 1160, 670), radius=36, fill=(229, 234, 249))
-    ph = Image.open(SRC / "assets" / "jessie-cutout-master.webp").convert("RGBA")
-    ph = ph.resize((470, int(ph.height * 470 / ph.width)), Image.LANCZOS)
-    og.paste(ph, (690, 630 - ph.height + 30), ph)
+    ph = Image.open(SRC / "assets" / "jessie-portrait-master.webp").convert("RGB")
+    fw, fh = 440, 550                                   # frame, 4:5
+    ph = ph.resize((fw, round(ph.height * fw / ph.width)), Image.LANCZOS).crop((0, 0, fw, fh))
+    mask = Image.new("L", (fw, fh), 0); ImageDraw.Draw(mask).rounded_rectangle((0, 0, fw - 1, fh - 1), radius=32, fill=255)
+    og.paste(ph, (700, 40), mask)
     d.rounded_rectangle((60, 520, 520, 560), radius=20, fill=(36, 71, 223))
     d.rounded_rectangle((60, 70, 140, 150), radius=22, fill=(36, 71, 223))
     buf = io.BytesIO(); og.save(buf, "JPEG", quality=86, optimize=True, progressive=True)

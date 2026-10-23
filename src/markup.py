@@ -200,13 +200,13 @@ def loader(loader_js):
 
 
 def portrait(src):
-    alt = "Portrait of Jessie, physiotherapist, smiling and wearing a gold silk saree"
+    alt = "Portrait of Jessie, physiotherapist, smiling, in a white coat with a stethoscope"
     if isinstance(src, str):
-        return f'<img src="{src}" width="820" height="930" alt="{alt}" fetchpriority="high" decoding="async">'
+        return f'<img src="{src}" width="800" height="1000" alt="{alt}" fetchpriority="high" decoding="async">'
     sizes = "(max-width: 960px) min(82vw, 420px), 500px"
     return (f'<picture><source type="image/avif" srcset="{src["avif"]}" sizes="{sizes}">'
             f'<source type="image/webp" srcset="{src["webp"]}" sizes="{sizes}">'
-            f'<img src="{src["fallback"]}" width="820" height="930" alt="{alt}" fetchpriority="high" decoding="async"></picture>')
+            f'<img src="{src["fallback"]}" width="800" height="1000" alt="{alt}" fetchpriority="high" decoding="async"></picture>')
 
 
 def resume_button(mode):

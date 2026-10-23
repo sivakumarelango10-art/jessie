@@ -156,9 +156,11 @@ ul { margin: 0; padding: 0; list-style: none; }
 @media (max-width: 620px) { .hero-meta { grid-template-columns: 1fr 1fr; } }
 
 .hero-visual { position: relative; margin: 0; width: 100%; max-width: 500px; justify-self: center; }
-.photo-card { position: relative; aspect-ratio: 4 / 4.9; border-radius: var(--r-lg); background-color: var(--tint); overflow: hidden; border: 1px solid var(--line); background-size: 28px 28px; }
-.photo-card img { position: absolute; left: 50%; bottom: 0; width: 100%; height: auto; max-width: none; translate: -50% 0; }
-.photo-card .axis { position: absolute; right: 16px; top: 16px; text-align: right; display: grid; gap: 2px; }
+.photo-card { position: relative; aspect-ratio: 4 / 5; border-radius: var(--r-lg); background-color: var(--tint); overflow: hidden; border: 1px solid var(--line); background-size: 28px 28px; }
+.photo-card img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 50% 22%; }
+.photo-card .axis { position: absolute; right: 14px; top: 14px; z-index: 2; text-align: right; display: grid; gap: 1px; padding: 8px 11px; border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.photo-card .axis .label { color: var(--ink); }
 .hero-visual .tape.t1 { width: 44%; left: -8%; top: 8%; rotate: -38deg; z-index: 3; }
 .hero-visual .tape.t2 { width: 38%; right: -6%; bottom: 22%; rotate: -14deg; z-index: 3; transform-origin: right center; border-radius: 6px 17px 17px 6px; }
 .gait-card {
@@ -558,3 +560,4 @@ ul { margin: 0; padding: 0; list-style: none; }
   .study.reveal-pending .study-art .zoom { transform: none; }
   .section-head.reveal-pending .label::before { transform: none; }
 }
+@media (max-width: 520px) { .photo-card .axis { display: none; } }
