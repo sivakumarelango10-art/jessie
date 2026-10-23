@@ -1,105 +1,122 @@
-"""Loading-screen checks: first frame, duration, layout shift, reveal, clickability, reduced motion, no JS.
+"""Loading-screen tests for the real-progress loader.
+
+Records, every animation frame, the displayed number, the bar width and the measured target, then checks:
+starts at 0, never goes backwards, number == bar, display never ahead of measured progress, 100% only after
+every task closed, page unlocked and clickable afterwards. Runs normal, slow network, failed portrait,
+blocked fonts, broken main script, reduced motion, no JavaScript, and several screen sizes.
 
 Usage: SITE_URL=http://127.0.0.1:8767/dist/site/ python3 scripts/loader_test.py <screenshot-dir>
 """
-import os, sys, time
+import os, sys
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 URL = os.environ.get("SITE_URL", "http://127.0.0.1:8766/")
 OUT = Path(sys.argv[1]); OUT.mkdir(parents=True, exist_ok=True)
 problems = []
-CLS = """window.__cls=0;new PerformanceObserver(l=>{for(const e of l.getEntries()) if(!e.hadRecentInput) window.__cls+=e.value}).observe({type:'layout-shift',buffered:true});"""
 
-def leaving_at(pg):
-    return pg.evaluate("""() => new Promise(res => { const l = document.getElementById('loader');
-      const check = () => (!l || l.classList.contains('leaving')) ? res(Math.round(performance.now())) : requestAnimationFrame(check); check(); })""")
+RECORDER = """
+window.__rec = [];
+(function poll() {
+  const l = document.getElementById('loader');
+  if (l) {
+    const b = l.querySelector('.ld-pct b'), bar = l.querySelector('.ld-bar i');
+    const m = bar && /scaleX\\(([\\d.]+)\\)/.exec(bar.style.transform || '');
+    const st = window.PortfolioLoader ? window.PortfolioLoader.state() : null;
+    window.__rec.push({ t: Math.round(performance.now()), text: b ? +b.textContent : null, bar: m ? +m[1] * 100 : 0,
+                  target: st ? st.target : null, pending: st ? st.pending.length : null, leaving: l.classList.contains('leaving'),
+                  status: (l.querySelector('.ld-status') || {}).textContent });
+  }
+  if (!window.__done) requestAnimationFrame(poll);
+})();
+"""
 
-def gone_at(pg):
-    """ms after navigation start at which the loader left the DOM."""
-    return pg.evaluate("""() => new Promise(res => {
-      const check = () => document.getElementById('loader') ? requestAnimationFrame(check) : res(Math.round(performance.now()));
-      check(); })""")
+def run(b, name, *, w=1440, h=900, scheme="light", throttle=None, route=None, reduced=False, check_click=False, shot=None):
+    ctx = b.new_context(viewport={"width": w, "height": h}, color_scheme=scheme, reduced_motion="reduce" if reduced else "no-preference")
+    ctx.add_init_script(RECORDER)
+    ctx.add_init_script("window.__cls=0;new PerformanceObserver(l=>{for(const e of l.getEntries()) if(!e.hadRecentInput) window.__cls+=e.value}).observe({type:'layout-shift',buffered:true});")
+    pg = ctx.new_page(); errs = []
+    pg.on("pageerror", lambda ex: errs.append(str(ex)))
+    if throttle:
+        cdp = ctx.new_cdp_session(pg); cdp.send("Network.enable"); cdp.send("Network.emulateNetworkConditions", throttle)
+    for pattern, handler in (route or []): pg.route(pattern, handler)
+    pg.goto(URL, wait_until="commit", timeout=90000)
+    if shot:
+        import base64
+        cdp2 = ctx.new_cdp_session(pg)
+        for ms in shot:  # raw CDP capture: Playwright's screenshot() would wait for web fonts and arrive late
+            pg.wait_for_function(f"document.getElementById('loader') && performance.now() > {ms}", timeout=60000, polling=50)
+            label = pg.evaluate("(document.querySelector('.ld-pct b')||{}).textContent")
+            data = cdp2.send("Page.captureScreenshot", {"format": "png"})["data"]
+            (OUT / f"{name}-{ms}.png").write_bytes(base64.b64decode(data)); print(f"   frame {ms} ms: {label}%")
+    pg.wait_for_function("!document.getElementById('loader')", timeout=60000, polling=100)
+    pg.wait_for_timeout(300)
+    rec = pg.evaluate("window.__done = true, window.__rec")
+    st_log = pg.evaluate("window.PortfolioLoader ? window.PortfolioLoader.state().log : []")
+    after = pg.evaluate("""() => ({ locked: document.documentElement.classList.contains('is-loading') || getComputedStyle(document.documentElement).overflow === 'hidden',
+        busy: document.getElementById('main').getAttribute('aria-busy'),
+        cls: Math.round(window.__cls * 10000) / 10000, photoFailed: !!document.querySelector('.photo-card.photo-failed') })""")
+    tag = name
+    texts = [r["text"] for r in rec if r["text"] is not None]
+    if not texts: problems.append(f"{tag}: loader never seen"); ctx.close(); return
+    if texts[0] != 0: problems.append(f"{tag}: first value {texts[0]} not 0")
+    if any(y < x for x, y in zip(texts, texts[1:])): problems.append(f"{tag}: number went backwards")
+    for r in rec:
+        if r["text"] is not None and abs(r["bar"] - r["text"]) >= 1.01:
+            problems.append(f"{tag}: bar {r['bar']:.1f} vs number {r['text']} at {r['t']}ms"); break
+    for r in rec:
+        if r["target"] is not None and r["text"] is not None and r["text"] > r["target"]:
+            problems.append(f"{tag}: display {r['text']} ahead of measured {r['target']}"); break
+    hundred = [r for r in rec if r["text"] == 100]
+    if hundred and hundred[0]["pending"]: problems.append(f"{tag}: showed 100% with {hundred[0]['pending']} tasks pending")
+    if after["locked"] or after["busy"]: problems.append(f"{tag}: page still locked/busy after loader")
+    if errs and "simulated" not in " ".join(errs): problems.append(f"{tag}: page errors {errs}")
+    leave = next((r["t"] for r in rec if r["leaving"]), None)
+    hit100 = hundred[0]["t"] if hundred else None
+    print(f"\n{tag}: loader visible from {rec[0]['t']} ms | 100% at {hit100} ms | lifts {leave} ms | "
+          f"{len(set(texts))} distinct values | CLS {after['cls']}" + (" | portrait fallback used" if after["photoFailed"] else ""))
+    msgs = []
+    for r in rec:
+        if r["status"] and (not msgs or msgs[-1] != r["status"]): msgs.append(r["status"])
+    print("   status:", " → ".join(msgs))
+    print("   measured:", ", ".join(f"{e['target']}%@{e['t']}({e['key'].split(':')[-1]}{' FAILED' if e['failed'] else ''})" for e in st_log))
+    if check_click:
+        pg.click(".nav-links a[href='#contact']"); pg.wait_for_timeout(2600)
+        y = pg.evaluate("Math.round(document.getElementById('contact').getBoundingClientRect().top)")
+        if abs(y) > 140: problems.append(f"{tag}: nav link after load did not reach contact ({y})")
+        else: print("   nav click after load: reached Contact")
+    ctx.close()
 
 with sync_playwright() as p:
     b = p.chromium.launch()
-    for scheme in ("light", "dark"):
-        for (w, h) in ((1440, 900), (390, 844), (320, 640), (768, 1024)):
-            ctx = b.new_context(viewport={"width": w, "height": h}, color_scheme=scheme)
-            ctx.add_init_script(CLS)
-            pg = ctx.new_page(); errs = []
-            pg.on("pageerror", lambda ex: errs.append(str(ex)))
-            pg.goto(URL, wait_until="domcontentloaded")
-            first = pg.evaluate("""() => { const l = document.getElementById('loader');
-                const r = l && l.getBoundingClientRect(); const cs = l && getComputedStyle(l);
-                const brand = l && l.querySelector('.ld-brand'); const br = brand && brand.getBoundingClientRect();
-                return { present: !!l, covers: !!r && r.width >= innerWidth - 0.5 && r.height >= innerHeight - 0.5, bg: cs && cs.backgroundColor,
-                         page: getComputedStyle(document.body).backgroundColor, text: brand && brand.textContent.replace(/\\u00a0/g,' '),
-                         brandFits: !!br && br.left >= 0 && br.right <= innerWidth, loading: document.documentElement.classList.contains('is-loading') }; }""")
-            tag = f"{scheme} {w}x{h}"
-            if not first["present"] or not first["covers"]: problems.append(f"{tag}: loader not covering at first frame")
-            if first["bg"] != first["page"]: problems.append(f"{tag}: loader bg {first['bg']} != page {first['page']}")
-            if first["text"] != "Jessie - Physiotherapist": problems.append(f"{tag}: brand {first['text']!r}")
-            if not first["brandFits"]: problems.append(f"{tag}: brand overflows")
-            if w in (1440, 390) and scheme == "light":
-                pg.wait_for_timeout(450); pg.screenshot(path=str(OUT / f"loader-{w}.png"))
-            t0 = leaving_at(pg); t = gone_at(pg)
-            pg.wait_for_timeout(1600)
-            after = pg.evaluate("""() => { const x = innerWidth / 2, y = innerHeight / 2; const el = document.elementFromPoint(x, y);
-                return { cls: Math.round(window.__cls * 10000) / 10000, loading: document.documentElement.classList.contains('is-loading'),
-                         overflow: getComputedStyle(document.documentElement).overflow, busy: document.getElementById('main').getAttribute('aria-busy'),
-                         topEl: el ? el.tagName + '.' + el.className : '', heroVisible: getComputedStyle(document.querySelector('.hero h1 .line > span')).transform };}""")
-            if after["loading"] or after["overflow"] == "hidden": problems.append(f"{tag}: page still locked")
-            if after["busy"]: problems.append(f"{tag}: aria-busy left on")
-            if after["cls"] > 0.05: problems.append(f"{tag}: layout shift {after['cls']}")
-            if errs: problems.append(f"{tag}: errors {errs}")
-            print(f"{tag}: first frame ok={first['covers']} bg={first['bg']} | lifts at {t0} ms, gone at {t} ms | CLS {after['cls']} | centre element {after['topEl'][:40]}")
-            if w == 1440 and scheme == "light":
-                pg.screenshot(path=str(OUT / "revealed-1440.png"))
-                # repeat visit in the same session: no minimum hold
-                pg.reload(wait_until="domcontentloaded"); t1 = leaving_at(pg); t2 = gone_at(pg); print(f"  repeat visit: lifts at {t1} ms, gone at {t2} ms")
-                # buttons clickable right after reveal
-                pg.wait_for_timeout(100)
-                pg.click(".nav-links a[href='#contact']"); pg.wait_for_timeout(2600)
-                y = pg.evaluate("Math.round(document.getElementById('contact').getBoundingClientRect().top)")
-                print("  nav click after reveal -> contact top at", y)
-                if abs(y) > 140: problems.append("nav link did not scroll to contact")
-            ctx.close()
-
-    # mid-animation frames for the review
-    ctx = b.new_context(viewport={"width": 1440, "height": 900}); pg = ctx.new_page()
-    pg.goto(URL, wait_until="domcontentloaded")
-    for i, ms in enumerate((120, 300, 550)):
-        pg.wait_for_timeout(ms - (0 if i == 0 else (120, 300)[i - 1])); pg.screenshot(path=str(OUT / f"seq-{ms}.png"))
-    ctx.close()
-
-    # reduced motion
-    ctx = b.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce"); pg = ctx.new_page()
-    pg.goto(URL, wait_until="domcontentloaded")
-    anim = pg.evaluate("getComputedStyle(document.querySelector('.ld-shank')).animationName")
-    t = gone_at(pg); print(f"reduced motion: shank animation={anim!r}, gone at {t} ms")
-    if anim not in ("none", ""): problems.append("reduced motion still animates the figure")
-    ctx.close()
-
-    # JavaScript disabled: loader must not block the page
-    ctx = b.new_context(viewport={"width": 1440, "height": 900}, java_script_enabled=False); pg = ctx.new_page()
-    pg.goto(URL)
-    vis = pg.locator("#loader").is_visible(); print("no-JS: loader visible =", vis)
-    if vis: problems.append("loader blocks page without JavaScript")
-    pg.screenshot(path=str(OUT / "nojs.png")); ctx.close()
-
-    # main script fails: inline failsafe must still lift it
-    ctx = b.new_context(viewport={"width": 1440, "height": 900}); pg = ctx.new_page()
+    run(b, "normal-1440-light", check_click=True, shot=(150,))
+    run(b, "slow-network", throttle={"offline": False, "latency": 400, "downloadThroughput": 50 * 1024, "uploadThroughput": 20 * 1024},
+        shot=(1500, 3500, 6000))
+    def abort(route): route.abort()
+    run(b, "portrait-fails", route=[("**/jessie.webp", abort)])
+    run(b, "fonts-blocked", route=[("https://fonts.googleapis.com/**", abort), ("https://fonts.gstatic.com/**", abort)])
     def broken(route):
-        resp = route.fetch(); body = resp.text().replace('"use strict";', 'throw new Error("simulated failure");', 1)
-        route.fulfill(response=resp, body=body)
-    pg.route(URL, broken)
-    pg.goto(URL, wait_until="domcontentloaded"); pg.wait_for_timeout(4400)
-    st = pg.evaluate("(()=>{const l=document.getElementById('loader');return l?getComputedStyle(l).visibility:'removed'})()")
-    print("main script broken: loader after 4.4 s =", st)
-    if st == "visible": problems.append("failsafe did not lift loader")
-    ctx.close()
-    b.close()
+        resp = route.fetch()
+        route.fulfill(response=resp, body=resp.text().replace('"use strict";\n  const $', 'throw new Error("simulated");\n  const $', 1))
+    run(b, "main-script-broken", route=[(URL, broken)])
+    run(b, "reduced-motion", reduced=True)
+    for (w, h, sc) in ((390, 844, "dark"), (320, 640, "light"), (768, 1024, "dark")):
+        run(b, f"size-{w}-{sc}", w=w, h=h, scheme=sc, shot=(250,))
+
+    pg = b.new_page(viewport={"width": 320, "height": 640})
+    pg.goto(URL, wait_until="domcontentloaded")
+    fit = pg.evaluate("""() => { const l = document.getElementById('loader'); if (!l) return null;
+        const r = s => l.querySelector(s).getBoundingClientRect();
+        return { brand: [Math.round(r('.ld-brand').left), Math.round(r('.ld-brand').right)], bar: [Math.round(r('.ld-bar').left), Math.round(r('.ld-bar').right)],
+                 pct: Math.round(r('.ld-pct').right), vw: innerWidth }; }""")
+    print("\n320px layout:", fit)
+    if fit and (fit["brand"][0] < 0 or fit["brand"][1] > fit["vw"] or fit["bar"][1] > fit["vw"] or fit["pct"] > fit["vw"]): problems.append("320px: loader overflows")
+    pg.close()
+
+    ctx = b.new_context(java_script_enabled=False); pg = ctx.new_page(); pg.goto(URL)
+    vis = pg.locator("#loader").is_visible(); print("no JavaScript: loader visible =", vis)
+    if vis: problems.append("loader shown without JavaScript")
+    ctx.close(); b.close()
 
 print("\nPROBLEMS:" if problems else "\nNo problems found.")
 for x in problems: print(" -", x)

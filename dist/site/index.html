@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232447df%27/%3E%3Crect x=%274%27 y=%2713%27 width=%2724%27 height=%276%27 rx=%273%27 fill=%27%23fff%27 opacity=%27.38%27 transform=%27rotate(-35 16 16)%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%275.4%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%272.6%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%272%27 fill=%27%23fff%27/%3E%3C/svg%3E">
 <link rel="preload" as="image" href="assets/jessie.webp">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link id="font-css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" media="print"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap"></noscript>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Person", "name": "Jessie J.", "jobTitle": "Physiotherapist", "address": {"@type": "PostalAddress", "addressLocality": "Chennai", "addressCountry": "IN"}, "alumniOf": "Saveetha College of Physiotherapy, SIMATS", "email": "mailto:jessieraj57@gmail.com"}</script>
 <style>
 /* Layout: clinical-editorial. Porcelain ground with a faint graph-paper grid (the physio's charting paper),
@@ -76,9 +76,279 @@
   color-scheme: dark;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 96px; scrollbar-gutter: stable; background: var(--bg); }
+/* ---------- Critical: paints with the very first bytes, before the main stylesheet ---------- */
+html { background: var(--bg); scrollbar-gutter: stable; }
 html.is-loading { overflow: hidden; }
+body { margin: 0; background: var(--bg); }
+
+/* ---------- Loading screen ----------
+   Progress is real (see loader.js). The knee extends from 90° of flexion to full extension as the page loads,
+   so 100% is "full range of motion". Nothing here loops; every moving part is driven by the measured value. */
+.loader {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 90;
+  display: grid; place-items: center; color: var(--ink); background-color: var(--bg);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  transition: opacity .55s cubic-bezier(0.22, 1, 0.36, 1) .1s, visibility 0s linear .7s;
+}
+.loader::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 62% 55% at 50% 48%, transparent 35%, var(--bg) 82%); }
+.ld-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 20px; text-align: center; width: min(600px, 100%);
+  transition: opacity .4s cubic-bezier(0.22, 1, 0.36, 1), transform .55s cubic-bezier(0.22, 1, 0.36, 1); }
+.ld-figure { width: clamp(160px, 32vw, 250px); height: auto; overflow: visible; }
+.ld-ground { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 6; opacity: .55; }
+.ld-seat { stroke: var(--muted); stroke-width: 3; stroke-linecap: round; opacity: .55; }
+.ld-bone { stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
+.ld-mk { fill: var(--blue); stroke: var(--bg); stroke-width: 2.5; }
+.ld-tape { fill: var(--blue); opacity: .85; }
+.ld-arc-bg { fill: none; stroke: var(--line); stroke-width: 3; }
+.ld-arc { fill: none; stroke: var(--coral); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: 50.3; }
+.ld-shank { transform-box: view-box; transform-origin: 134px 66px; }
+.ld-deg { fill: var(--muted); font: 500 10px "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+.ld-brand {
+  margin: 0; font-family: "Bricolage Grotesque", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif; font-weight: 500;
+  font-size: clamp(1.3rem, 5.4vw, 2.6rem); letter-spacing: -0.02em; font-variation-settings: "wdth" 90; line-height: 1.15;
+  white-space: nowrap; padding-block: 0.06em; max-width: 100%;
+  clip-path: inset(-1em -50vw 0 -50vw); /* mask the letters rising from below; never clip the sides */
+}
+.ld-strong .ch { font-weight: 700; }
+.ld-brand .ch { display: inline-block; }
+.ld-progress { width: min(360px, 100%); display: grid; gap: 10px; }
+.ld-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.ld-status { margin: 0; font: 500 0.72rem "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ld-pct { margin: 0; font-family: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif; font-weight: 650; font-size: 1.9rem; line-height: 1;
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--ink); flex: none; }
+.ld-pct small { font-size: .55em; font-weight: 500; margin-left: 1px; color: var(--muted); }
+.ld-bar { position: relative; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.ld-bar i { position: absolute; inset: 0; border-radius: 2px; background: var(--blue); transform-origin: left center; transform: scaleX(0); }
+.loader.complete .ld-knee { fill: var(--coral); }
+.loader.leaving { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader.leaving .ld-inner { opacity: 0; transform: translateY(-14px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ld-figure { animation: ldIn .7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .ld-brand .ch { transform: translateY(110%); }
+  .loader.text-in .ld-brand .ch { animation: chUp .55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 14ms); }
+  .loader.complete .ld-knee { animation: kneePulse .5s cubic-bezier(0.22, 1, 0.36, 1); transform-box: fill-box; transform-origin: center; }
+  /* the hero entrance waits behind the loader, then plays as it lifts */
+  html.is-loading .enter, html.is-loading .hero h1 .line > span, html.is-loading .photo-card, html.is-loading .photo-card img,
+  html.is-loading .hero-visual .tape, html.is-loading .gait-card { animation-play-state: paused; }
+}
+@keyframes chUp { from { transform: translateY(110%); } to { transform: none; } }
+@keyframes ldIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes kneePulse { 50% { transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) {
+  .loader { transition: opacity .3s linear, visibility 0s linear .3s; }
+  .loader.leaving .ld-inner { transform: none; }
+}
+/* if the portrait cannot load, keep the framed card rather than a broken image */
+.photo-card.photo-failed img { visibility: hidden; }
+
+</style>
+</head>
+<body><div id="loader" class="loader">
+  <div class="ld-inner">
+    <svg class="ld-figure" viewBox="0 0 240 172" aria-hidden="true"><line class="ld-ground" x1="14" y1="162" x2="226" y2="162"/><line class="ld-seat" x1="22" y1="80" x2="120" y2="80"/><line class="ld-seat" x1="34" y1="80" x2="34" y2="162"/><path class="ld-arc-bg" d="M134 98 A32 32 0 0 0 166 66"/><path class="ld-arc" d="M134 98 A32 32 0 0 0 166 66"/><text class="ld-deg" x="140" y="112">90°</text><text class="ld-deg" x="174" y="60">0°</text><g class="ld-shank"><line class="ld-bone" x1="134" y1="66" x2="134" y2="148"/><line class="ld-bone" x1="134" y1="148" x2="154" y2="152"/><circle class="ld-mk" cx="134" cy="148" r="5.5"/></g><line class="ld-bone" x1="46" y1="66" x2="134" y2="66"/><rect class="ld-tape" x="112" y="60" width="44" height="12" rx="6" transform="rotate(-38 134 66)"/><circle class="ld-mk" cx="46" cy="66" r="5.5"/><circle class="ld-mk ld-knee" cx="134" cy="66" r="6.5"/></svg>
+    <p class="ld-brand" aria-hidden="true"><span class="ld-strong"><span class="ch" style="--i:0">J</span><span class="ch" style="--i:1">e</span><span class="ch" style="--i:2">s</span><span class="ch" style="--i:3">s</span><span class="ch" style="--i:4">i</span><span class="ch" style="--i:5">e</span></span><span class="ch" style="--i:6">&nbsp;</span><span class="ch" style="--i:7">-</span><span class="ch" style="--i:8">&nbsp;</span><span class="ch" style="--i:9">P</span><span class="ch" style="--i:10">h</span><span class="ch" style="--i:11">y</span><span class="ch" style="--i:12">s</span><span class="ch" style="--i:13">i</span><span class="ch" style="--i:14">o</span><span class="ch" style="--i:15">t</span><span class="ch" style="--i:16">h</span><span class="ch" style="--i:17">e</span><span class="ch" style="--i:18">r</span><span class="ch" style="--i:19">a</span><span class="ch" style="--i:20">p</span><span class="ch" style="--i:21">i</span><span class="ch" style="--i:22">s</span><span class="ch" style="--i:23">t</span></p>
+    <div class="ld-progress" role="progressbar" aria-label="Loading Jessie - Physiotherapist" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="ld-row"><p class="ld-status" aria-hidden="true">Building the page</p><p class="ld-pct" aria-hidden="true"><b>0</b><small>%</small></p></div>
+      <div class="ld-bar" aria-hidden="true"><i></i></div>
+    </div>
+  </div>
+</div>
+<script>/* Loading progress manager.
+ *
+ * Runs inline straight after the loader markup, before the rest of the page has even arrived, so it can
+ * watch the page load as it happens. Progress is the weighted share of real tasks that have finished:
+ *
+ *   page sections   one task per section; a section counts once the next one has arrived (or the
+ *                   document has finished parsing), i.e. once it is fully in the page
+ *   font stylesheet the Google Fonts CSS
+ *   typefaces       each weight/family the site uses, via document.fonts.load()
+ *   portrait        the hero photo downloaded and decoded
+ *   interactive     main.js finished setting up navigation, dial, body map, canvases (it calls done("init"))
+ *
+ * There are no timers that move the number. Timeouts exist only so a stuck or failed request can never keep
+ * the screen up: a task that fails or times out is closed and the page opens without it. The displayed
+ * number eases toward the measured value but never passes it and never goes backwards; 100% appears only
+ * when every task is closed.
+ */
+(function () {
+  "use strict";
+  var doc = document, root = doc.documentElement, el = doc.getElementById("loader");
+  if (!el) return;
+  root.classList.add("is-loading");
+  var reduce = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var pctNum = el.querySelector(".ld-pct b"), bar = el.querySelector(".ld-bar i"), status = el.querySelector(".ld-status"),
+      meter = el.querySelector(".ld-progress"), shank = el.querySelector(".ld-shank"), arc = el.querySelector(".ld-arc");
+  var ARC = 50.3, RANGE = 90; // knee travels from 90° flexion to full extension
+
+  var SECTIONS = ["#top", "#about", "#approach", "#expertise", "#experience", "#research", "#education", "#contact", ".site-footer"];
+  var FONTS = [
+    ['700 40px "Bricolage Grotesque"', "display-bold"], ['500 40px "Bricolage Grotesque"', "display"],
+    ['400 16px "Plus Jakarta Sans"', "body"], ['600 16px "Plus Jakarta Sans"', "body-bold"],
+    ['500 12px "IBM Plex Mono"', "labels"]
+  ];
+  var tasks = [], byKey = {};
+  function add(key, weight, label) { var t = { key: key, w: weight, label: label, done: false, failed: false }; tasks.push(t); byKey[key] = t; }
+  SECTIONS.forEach(function (s) { add("section:" + s, 4, "Building the page"); });
+  add("font-css", 4, "Loading typefaces");
+  FONTS.forEach(function (f) { add("font:" + f[1], 5, "Loading typefaces"); });
+  add("portrait", 21, "Loading portrait");
+  add("init", 14, "Setting up interactive sections");
+
+  var target = 0, shown = 0, raf = 0, last = 0, finished = false, timers = [], log = [];
+  var t0 = performance.now();
+
+  function close(key, failed) {
+    var t = byKey[key];
+    if (!t || t.done || finished) return;
+    t.done = true; t.failed = !!failed;
+    var sum = 0, tot = 0;
+    for (var i = 0; i < tasks.length; i++) { tot += tasks[i].w; if (tasks[i].done) sum += tasks[i].w; }
+    var v = sum === tot ? 100 : Math.floor((sum / tot) * 100);
+    if (v > target) target = v;
+    log.push({ t: Math.round(performance.now() - t0), key: key, failed: !!failed, target: target });
+    if (key === "font:display-bold") showName();
+    var next = null;
+    for (var j = 0; j < tasks.length; j++) if (!tasks[j].done) { next = tasks[j]; break; }
+    if (next) status.textContent = next.label; // "Ready" only once the number itself reaches 100
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  }
+  function later(ms, fn) { timers.push(setTimeout(fn, ms)); }
+  // The name reveals once its typeface is in, or after 1 s in the fallback face on slow connections.
+  var nameAt = 0;
+  function showName() { if (!nameAt) { nameAt = performance.now(); el.classList.add("text-in"); } }
+
+  function render(v) {
+    var shownInt = Math.floor(v);
+    pctNum.textContent = String(shownInt);
+    bar.style.transform = "scaleX(" + (v / 100).toFixed(4) + ")";
+    shank.style.transform = "rotate(" + (-RANGE * v / 100).toFixed(2) + "deg)";
+    arc.style.strokeDashoffset = (ARC * (1 - v / 100)).toFixed(2);
+    meter.setAttribute("aria-valuenow", String(shownInt));
+    meter.setAttribute("aria-valuetext", shownInt + "%, " + status.textContent.toLowerCase());
+  }
+  function frame(now) {
+    raf = 0;
+    var dt = Math.max(0, Math.min(64, now - last)); last = Math.max(last, now); // frame timestamps can precede the update
+    var gap = target - shown, next;
+    if (reduce) next = target;
+    else next = shown + Math.min(gap, Math.max(gap * (1 - Math.exp(-dt / 170)), dt * 0.03)); // ease in, never overshoot
+    if (target - next < 0.05) next = target;
+    shown = Math.min(target, Math.max(shown, next)); // never backwards, never ahead
+    render(shown);
+    if (shown < target) raf = requestAnimationFrame(frame);
+    else if (target === 100) complete();
+  }
+
+  function complete() {
+    if (finished) return;
+    finished = true;
+    el.classList.add("complete");
+    status.textContent = "Ready";
+    render(100);
+    showName();
+    // Hold the final pose just long enough to read 100%. If the name only just began to appear, let it finish.
+    var nameLeft = reduce ? 0 : Math.max(0, nameAt + 900 - performance.now());
+    later(Math.max(reduce ? 150 : 380, nameLeft), lift);
+  }
+  function lift() {
+    finished = true;
+    timers.forEach(clearTimeout);
+    if (raf) cancelAnimationFrame(raf);
+    el.classList.add("leaving");
+    root.classList.remove("is-loading");
+    var main = doc.getElementById("main");
+    if (main) main.removeAttribute("aria-busy");
+    var remove = function () { if (el.parentNode) el.parentNode.removeChild(el); };
+    el.addEventListener("transitionend", function (ev) { if (ev.target === el && ev.propertyName === "opacity") remove(); });
+    setTimeout(remove, 1200);
+    if (mo) mo.disconnect();
+  }
+
+  /* ---- page sections, observed while the HTML streams in ---- */
+  var seen = 0, mo = null;
+  function scanSections(final) {
+    while (seen < SECTIONS.length && doc.querySelector(SECTIONS[seen])) {
+      if (seen > 0) close("section:" + SECTIONS[seen - 1]); // the previous section is complete once the next exists
+      seen++;
+    }
+    if (final) for (var i = 0; i < SECTIONS.length; i++) close("section:" + SECTIONS[i]);
+    var main = doc.getElementById("main");
+    if (main && !main.hasAttribute("data-busy-set")) { main.setAttribute("aria-busy", "true"); main.setAttribute("data-busy-set", ""); }
+    watchPortrait();
+  }
+
+  /* ---- portrait ---- */
+  var img = null;
+  function watchPortrait() {
+    if (img) return;
+    img = doc.querySelector(".photo-card img");
+    if (!img) return;
+    var ok = function () {
+      var p = img.decode ? img.decode() : Promise.resolve();
+      p.then(function () { close("portrait"); }, function () { fail(); });
+    };
+    var fail = function () { var card = img.closest(".photo-card"); if (card) card.classList.add("photo-failed"); close("portrait", true); };
+    if (img.complete) { img.naturalWidth ? ok() : fail(); }
+    else { img.addEventListener("load", ok, { once: true }); img.addEventListener("error", fail, { once: true }); }
+    later(20000, function () { close("portrait", true); });
+  }
+
+  if ("MutationObserver" in window && doc.readyState === "loading") {
+    mo = new MutationObserver(function () { scanSections(false); });
+    mo.observe(root, { childList: true, subtree: true });
+  }
+  function onParsed() { if (mo) { mo.disconnect(); mo = null; } scanSections(true); }
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", onParsed, { once: true }); else onParsed();
+
+  /* ---- fonts: the stylesheet loads without blocking paint, then each face the site uses ---- */
+  var link = doc.getElementById("font-css");
+  var fontsStarted = false;
+  function loadFaces() {
+    if (fontsStarted) return; fontsStarted = true;
+    if (link) link.media = "all";
+    if (!doc.fonts || !doc.fonts.load) { FONTS.forEach(function (f) { close("font:" + f[1], true); }); return; }
+    FONTS.forEach(function (f) {
+      doc.fonts.load(f[0], "Jessie - Physiotherapist 0123456789%").then(
+        function (faces) { close("font:" + f[1], !faces || !faces.length); },
+        function () { close("font:" + f[1], true); });
+      later(12000, function () { close("font:" + f[1], true); });
+    });
+  }
+  function cssLoaded(failed) { close("font-css", failed); loadFaces(); }
+  if (!link) cssLoaded(true);
+  else if (link.sheet) cssLoaded(false);
+  else {
+    link.addEventListener("load", function () { cssLoaded(false); }, { once: true });
+    link.addEventListener("error", function () { cssLoaded(true); }, { once: true });
+    later(12000, function () { cssLoaded(true); });
+  }
+
+  /* ---- interactive setup: main.js reports in; if it never does, don't wait for it ---- */
+  window.addEventListener("load", function () { later(2500, function () { close("init", true); }); }, { once: true });
+
+  /* ---- last resort: never keep the page hidden; lifts at the real value, without claiming 100% ---- */
+  later(25000, function () { if (!finished) { status.textContent = "Opening the site"; lift(); } });
+
+  render(0);
+  later(1000, showName);
+  window.PortfolioLoader = {
+    done: function (key) { close(key); },
+    state: function () { return { target: target, shown: shown, finished: finished, log: log.slice(),
+      pending: tasks.filter(function (t) { return !t.done; }).map(function (t) { return t.key; }) }; }
+  };
+})();
+</script>
+<noscript><style>#loader{display:none}</style></noscript>
+<style>
+/* Main stylesheet. Design tokens and the loading screen live in critical.css, which is inlined first. */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--f-body); font-size: var(--t-body); line-height: 1.7; font-weight: 400;
@@ -485,57 +755,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 .footer-row a { text-decoration: none; }
 .footer-row a:hover { color: var(--on-dark); }
 
-/* ---------- Loading screen ---------- */
-.loader {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 90; display: grid; place-items: center; background-color: var(--bg);
-  padding: max(24px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
-  transition: opacity .55s var(--ease) .12s, visibility 0s linear .7s;
-}
-.loader::after { content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 60% 50% at 50% 46%, transparent 35%, var(--bg) 80%); }
-.ld-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 18px; text-align: center; transition: opacity .4s var(--ease), transform .55s var(--ease); }
-.ld-figure { width: clamp(160px, 32vw, 260px); height: auto; overflow: visible; }
-.ld-ground { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 6; opacity: .55; }
-.ld-seat { stroke: var(--muted); stroke-width: 3; stroke-linecap: round; opacity: .55; }
-.ld-bone { stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
-.ld-mk { fill: var(--blue); stroke: var(--bg); stroke-width: 2.5; }
-.ld-tape { fill: var(--blue); opacity: .85; }
-.ld-arc-bg { fill: none; stroke: var(--line); stroke-width: 3; }
-.ld-arc { fill: none; stroke: var(--coral); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: 28; }
-.ld-shank { transform-box: view-box; transform-origin: 134px 66px; transform: rotate(-40deg); }
-.ld-brand {
-  font-family: var(--f-display); font-weight: 500; font-size: clamp(1.3rem, 5.4vw, 2.7rem); letter-spacing: -0.02em;
-  font-variation-settings: "wdth" 90; line-height: 1.15; white-space: nowrap; overflow: hidden; padding-block: 0.06em;
-}
-.ld-strong .ch { font-weight: 700; }
-.ld-brand .ch { display: inline-block; }
-.ld-sub { opacity: 1; }
-.loader.leaving { opacity: 0; visibility: hidden; pointer-events: none; }
-.loader.leaving .ld-inner { opacity: 0; transform: translateY(-14px); }
-
-@media (prefers-reduced-motion: no-preference) {
-  .ld-figure { animation: ldIn .7s var(--ease) both; }
-  .ld-shank { animation: kneeExt 2.2s var(--ease-io) .25s infinite both; }
-  .ld-arc { animation: kneeArc 2.2s var(--ease-io) .25s infinite both; }
-  .ld-brand .ch { transform: translateY(110%); }
-  .loader.text-in .ld-brand .ch { animation: chUp .55s var(--ease) both; animation-delay: calc(var(--i) * 14ms); }
-  .loader.instant .ld-brand .ch, .loader.instant .ld-sub { animation: none; transform: none; opacity: 1; }
-  .ld-sub { opacity: 0; }
-  .loader.text-in .ld-sub { animation: ldFade .5s var(--ease) .3s both; }
-  /* the hero entrance waits behind the loader, then plays as it lifts */
-  html.is-loading .enter, html.is-loading .hero h1 .line > span, html.is-loading .photo-card, html.is-loading .photo-card img,
-  html.is-loading .hero-visual .tape, html.is-loading .gait-card { animation-play-state: paused; }
-}
-@keyframes kneeExt { 0%, 10% { transform: rotate(0deg); } 48%, 60% { transform: rotate(-82deg); } 100% { transform: rotate(0deg); } }
-@keyframes kneeArc { 0%, 10% { stroke-dashoffset: 50.3; } 48%, 60% { stroke-dashoffset: 4.5; } 100% { stroke-dashoffset: 50.3; } }
-@keyframes chUp { from { transform: translateY(110%); } to { transform: none; } }
-@keyframes ldIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
-@keyframes ldFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) {
-  .loader { transition: opacity .3s linear, visibility 0s linear .3s; }
-  .loader.leaving .ld-inner { transform: none; }
-}
-
 .toast {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); translate: -50% calc(100% + 48px); z-index: 70; visibility: hidden;
   background: var(--ink); color: var(--bg); padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 0.92rem;
@@ -579,16 +798,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 </style>
-</head>
-<body><div id="loader" class="loader graph" aria-hidden="true">
-  <div class="ld-inner">
-    <svg class="ld-figure" viewBox="0 0 240 172" aria-hidden="true"><line class="ld-ground" x1="14" y1="162" x2="226" y2="162"/><line class="ld-seat" x1="22" y1="80" x2="120" y2="80"/><line class="ld-seat" x1="34" y1="80" x2="34" y2="162"/><path class="ld-arc-bg" d="M134 98 A32 32 0 0 0 166 66"/><path class="ld-arc" d="M134 98 A32 32 0 0 0 166 66"/><g class="ld-shank"><line class="ld-bone" x1="134" y1="66" x2="134" y2="148"/><line class="ld-bone" x1="134" y1="148" x2="154" y2="152"/><circle class="ld-mk" cx="134" cy="148" r="5.5"/></g><line class="ld-bone" x1="46" y1="66" x2="134" y2="66"/><rect class="ld-tape" x="112" y="60" width="44" height="12" rx="6" transform="rotate(-38 134 66)"/><circle class="ld-mk" cx="46" cy="66" r="5.5"/><circle class="ld-mk" cx="134" cy="66" r="6.5"/></svg>
-    <p class="ld-brand"><span class="ld-strong"><span class="ch" style="--i:0">J</span><span class="ch" style="--i:1">e</span><span class="ch" style="--i:2">s</span><span class="ch" style="--i:3">s</span><span class="ch" style="--i:4">i</span><span class="ch" style="--i:5">e</span></span><span class="ch" style="--i:6">&nbsp;</span><span class="ch" style="--i:7">-</span><span class="ch" style="--i:8">&nbsp;</span><span class="ch" style="--i:9">P</span><span class="ch" style="--i:10">h</span><span class="ch" style="--i:11">y</span><span class="ch" style="--i:12">s</span><span class="ch" style="--i:13">i</span><span class="ch" style="--i:14">o</span><span class="ch" style="--i:15">t</span><span class="ch" style="--i:16">h</span><span class="ch" style="--i:17">e</span><span class="ch" style="--i:18">r</span><span class="ch" style="--i:19">a</span><span class="ch" style="--i:20">p</span><span class="ch" style="--i:21">i</span><span class="ch" style="--i:22">s</span><span class="ch" style="--i:23">t</span></p>
-    <p class="ld-sub label">Sports &amp; orthopaedic rehabilitation</p>
-  </div>
-</div>
-<script>(function(){var d=document.documentElement;d.classList.add("is-loading");setTimeout(function(){var l=document.getElementById("loader");d.classList.remove("is-loading");if(l)l.classList.add("leaving");},3500);})();</script>
-<noscript><style>#loader{display:none}</style></noscript>
 
 <a class="skip" href="#main">Skip to content</a>
 
@@ -886,45 +1095,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   const ease = (t) => 1 - Math.pow(1 - t, 4);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const hasIO = "IntersectionObserver" in window;
-
-  /* ---------- Loading screen ----------
-     Leaves as soon as what the first screen needs is ready: the web fonts and the hero portrait.
-     Never waits longer than 2.6 s. On the first visit of a session it also lets the name finish
-     appearing so it can be read and the screen never flickers; repeat visits only wait for
-     readiness. Nothing loops after it has gone. */
-  const loader = $("#loader");
-  if (loader) {
-    const root = document.documentElement;
-    const main = $("#main");
-    if (main) main.setAttribute("aria-busy", "true");
-    let seen = false;
-    try { seen = sessionStorage.getItem("jp-intro") === "1"; sessionStorage.setItem("jp-intro", "1"); } catch (_) { /* storage blocked */ }
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    // First visit: hold only until the name has finished appearing (~0.65 s after its letters start).
-    // Repeat visits and reduced motion: the name shows at once and nothing is held.
-    if (seen || reduceMotion) loader.classList.add("instant");
-    const textShown = Promise.race([fonts, wait(450)]).then(() => {
-      loader.classList.add("text-in");
-      return seen || reduceMotion ? null : wait(650);
-    });
-    const img = $(".photo-card img");
-    const photo = !img ? Promise.resolve()
-      : img.decode ? img.decode().catch(() => {})
-      : new Promise((r) => { if (img.complete) r(); else { img.addEventListener("load", r, { once: true }); img.addEventListener("error", r, { once: true }); } });
-    let finished = false;
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      loader.classList.add("leaving");
-      root.classList.remove("is-loading");
-      if (main) main.removeAttribute("aria-busy");
-      const remove = () => { if (loader.isConnected) loader.remove(); };
-      loader.addEventListener("transitionend", (ev) => { if (ev.target === loader && ev.propertyName === "opacity") remove(); });
-      setTimeout(remove, 1200);
-    };
-    Promise.race([Promise.all([fonts, photo, textShown]), wait(2600)]).then(finish);
-  }
 
   /* ---------- Header: capsule fills in after scrolling, hides on the way down ---------- */
   const header = $(".site-header");
@@ -1320,6 +1490,11 @@ ul { margin: 0; padding: 0; list-style: none; }
 
   const yr = $("#year");
   if (yr) yr.textContent = String(new Date().getFullYear());
+
+  /* Everything interactive is set up: tell the loading screen (a real progress task). */
+  const fontLink = document.getElementById("font-css");
+  if (fontLink && fontLink.media !== "all") fontLink.media = "all";
+  if (window.PortfolioLoader) window.PortfolioLoader.done("init");
 })();
 
 </script>

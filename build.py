@@ -24,13 +24,19 @@ RESUME = M.RESUME
 
 
 def build():
+    critical = (SRC / "critical.css").read_text()
     css = (SRC / "styles.css").read_text()
     js = (SRC / "main.js").read_text()
+    loader_js = (SRC / "loader.js").read_text()
+    # Paint order: critical CSS (tokens + loader) -> loader + its progress script -> main CSS -> content.
+    # The font stylesheet is non-blocking (media="print" until loader.js switches it on), with a <noscript> fallback.
+    loader_block = M.loader(loader_js) + f"<style>\n{css}\n</style>\n"
     stages = json.dumps([{k: s[k] for k in ("angle", "title", "text")} for s in C.STAGES])
     scripts = f"<script>window.STAGES={stages};</script>\n<script>\n{js}\n</script>"
     fonts = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
              '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-             f'<link rel="stylesheet" href="{FONTS}">')
+             f'<link id="font-css" rel="stylesheet" href="{FONTS}" media="print">'
+             f'<noscript><link rel="stylesheet" href="{FONTS}"></noscript>')
 
     # --- deployable static site
     site = ROOT / "dist" / "site"
@@ -62,11 +68,11 @@ def build():
 {fonts}
 <script type="application/ld+json">{json.dumps(person)}</script>
 <style>
-{css}
+{critical}
 </style>
 </head>
 <body>'''
-    (site / "index.html").write_text(head + M.page("site", "assets/jessie.webp") + scripts + "\n</body>\n</html>\n")
+    (site / "index.html").write_text(head + loader_block + M.page("site", "assets/jessie.webp") + scripts + "\n</body>\n</html>\n")
 
     # --- single-file artifact (wrapped in a skeleton at publish time)
     art = ROOT / "dist" / "artifact"
@@ -76,8 +82,8 @@ def build():
     shutil.copy(SRC / "assets" / "Jessie-J-Resume-public.pdf", art / RESUME)
     art_head = (f'<title>{TITLE}</title>\n'
                 f'<meta name="claude:viewport-fit-sides" content="cover">\n'
-                f'<meta name="description" content="{e(DESCRIPTION)}">\n{fonts}\n<style>\n{css}\n</style>\n')
-    (art / "index.html").write_text(art_head + M.page("artifact", photo) + scripts + "\n")
+                f'<meta name="description" content="{e(DESCRIPTION)}">\n<style>\n{critical}\n</style>\n{fonts}\n')
+    (art / "index.html").write_text(art_head + loader_block + M.page("artifact", photo) + scripts + "\n")
     print("built", site / "index.html", art / "index.html")
 
 
