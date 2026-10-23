@@ -6,7 +6,8 @@ import hashlib, json, sys
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-URL = "http://127.0.0.1:8766/"
+import os
+URL = os.environ.get("SITE_URL", "http://127.0.0.1:8766/")
 OUT = Path(sys.argv[1]); OUT.mkdir(parents=True, exist_ok=True)
 SRC_PDF = Path(__file__).resolve().parent.parent / "dist/site/Jessie_Physiotherapist_Resume.pdf"
 problems = []
@@ -43,7 +44,7 @@ with sync_playwright() as p:
             pg = ctx.new_page(); errs = []
             pg.on("pageerror", lambda ex: errs.append(str(ex)))
             pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
-            pg.goto(URL, wait_until="networkidle"); pg.wait_for_timeout(300)
+            pg.goto(URL, wait_until="networkidle"); pg.wait_for_selector("#loader", state="detached", timeout=5000)
             m = pg.evaluate(MEASURE)
             tag = f"{scheme} {w}px"
             if m["docW"] > m["vw"]: problems.append(f"{tag}: horizontal overflow {m['docW']}")
@@ -64,7 +65,7 @@ with sync_playwright() as p:
     # ---- the real download, from every résumé button (desktop + mobile menu)
     expected = hashlib.sha256(SRC_PDF.read_bytes()).hexdigest()
     ctx = b.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True); pg = ctx.new_page()
-    pg.goto(URL); pg.wait_for_timeout(300)
+    pg.goto(URL); pg.wait_for_selector("#loader", state="detached", timeout=5000)
     n = pg.locator(".btn-resume").count()
     for i in range(n):
         loc = pg.locator(".btn-resume").nth(i)
@@ -78,14 +79,14 @@ with sync_playwright() as p:
         if not ok or d.suggested_filename != "Jessie_Physiotherapist_Resume.pdf": problems.append(f"download #{i} wrong")
     ctx.close()
     ctx = b.new_context(viewport={"width": 390, "height": 844}, accept_downloads=True); pg = ctx.new_page()
-    pg.goto(URL); pg.wait_for_timeout(300); pg.click(".menu-btn"); pg.wait_for_timeout(800)
+    pg.goto(URL); pg.wait_for_selector("#loader", state="detached", timeout=5000); pg.click(".menu-btn"); pg.wait_for_timeout(800)
     pg.screenshot(path=str(OUT / "menu-390.png"))
     with pg.expect_download() as dl:
         pg.click(".mobile-menu .btn-resume")
     print("mobile menu download:", dl.value.suggested_filename)
 
     # ---- every link and control
-    pg = b.new_page(viewport={"width": 1440, "height": 900}); pg.goto(URL); pg.wait_for_timeout(300)
+    pg = b.new_page(viewport={"width": 1440, "height": 900}); pg.goto(URL); pg.wait_for_selector("#loader", state="detached", timeout=5000)
     links = pg.evaluate("[...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))")
     missing = [h for h in links if h.startswith("#") and len(h) > 1 and not pg.query_selector(h)]
     external = sorted({h for h in links if not h.startswith("#")})
@@ -99,7 +100,8 @@ with sync_playwright() as p:
     print("dial ->", pg.inner_text("#stage-panel h3"))
     pg.click('.care[data-area="ortho"] .title'); print("body map ortho markers:", pg.locator(".body-map .mk.on").count())
     pg.click(".job summary"); print("details open:", pg.eval_on_selector(".job details", "d => d.open"))
-    pg.keyboard.press("Tab"); print("first tab stop:", pg.evaluate("document.activeElement.textContent.trim()"))
+    pg.reload(); pg.wait_for_selector("#loader", state="detached", timeout=5000); pg.keyboard.press("Tab")
+    print("first tab stop after load:", pg.evaluate("document.activeElement.textContent.trim()"))
     b.close()
 
 print("\nPROBLEMS:" if problems else "\nNo problems found.")

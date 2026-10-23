@@ -7,6 +7,7 @@
 <meta name="description" content="Jessie J. is a physiotherapist in Chennai specialising in sports and orthopaedic rehabilitation, post-operative recovery, neuro rehab and home-based care.">
 <meta name="author" content="Jessie">
 <meta name="theme-color" content="#2447df">
+<meta name="color-scheme" content="light dark">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="Jessie - Physiotherapist">
 <meta property="og:description" content="Jessie J. is a physiotherapist in Chennai specialising in sports and orthopaedic rehabilitation, post-operative recovery, neuro rehab and home-based care.">
@@ -76,7 +77,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; scrollbar-gutter: stable; background: var(--bg); }
+html.is-loading { overflow: hidden; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--f-body); font-size: var(--t-body); line-height: 1.7; font-weight: 400;
@@ -483,6 +485,57 @@ ul { margin: 0; padding: 0; list-style: none; }
 .footer-row a { text-decoration: none; }
 .footer-row a:hover { color: var(--on-dark); }
 
+/* ---------- Loading screen ---------- */
+.loader {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 90; display: grid; place-items: center; background-color: var(--bg);
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  transition: opacity .55s var(--ease) .12s, visibility 0s linear .7s;
+}
+.loader::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 50% 46%, transparent 35%, var(--bg) 80%); }
+.ld-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 18px; text-align: center; transition: opacity .4s var(--ease), transform .55s var(--ease); }
+.ld-figure { width: clamp(160px, 32vw, 260px); height: auto; overflow: visible; }
+.ld-ground { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 6; opacity: .55; }
+.ld-seat { stroke: var(--muted); stroke-width: 3; stroke-linecap: round; opacity: .55; }
+.ld-bone { stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
+.ld-mk { fill: var(--blue); stroke: var(--bg); stroke-width: 2.5; }
+.ld-tape { fill: var(--blue); opacity: .85; }
+.ld-arc-bg { fill: none; stroke: var(--line); stroke-width: 3; }
+.ld-arc { fill: none; stroke: var(--coral); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: 28; }
+.ld-shank { transform-box: view-box; transform-origin: 134px 66px; transform: rotate(-40deg); }
+.ld-brand {
+  font-family: var(--f-display); font-weight: 500; font-size: clamp(1.3rem, 5.4vw, 2.7rem); letter-spacing: -0.02em;
+  font-variation-settings: "wdth" 90; line-height: 1.15; white-space: nowrap; overflow: hidden; padding-block: 0.06em;
+}
+.ld-strong .ch { font-weight: 700; }
+.ld-brand .ch { display: inline-block; }
+.ld-sub { opacity: 1; }
+.loader.leaving { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader.leaving .ld-inner { opacity: 0; transform: translateY(-14px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ld-figure { animation: ldIn .7s var(--ease) both; }
+  .ld-shank { animation: kneeExt 2.2s var(--ease-io) .25s infinite both; }
+  .ld-arc { animation: kneeArc 2.2s var(--ease-io) .25s infinite both; }
+  .ld-brand .ch { transform: translateY(110%); }
+  .loader.text-in .ld-brand .ch { animation: chUp .55s var(--ease) both; animation-delay: calc(var(--i) * 14ms); }
+  .loader.instant .ld-brand .ch, .loader.instant .ld-sub { animation: none; transform: none; opacity: 1; }
+  .ld-sub { opacity: 0; }
+  .loader.text-in .ld-sub { animation: ldFade .5s var(--ease) .3s both; }
+  /* the hero entrance waits behind the loader, then plays as it lifts */
+  html.is-loading .enter, html.is-loading .hero h1 .line > span, html.is-loading .photo-card, html.is-loading .photo-card img,
+  html.is-loading .hero-visual .tape, html.is-loading .gait-card { animation-play-state: paused; }
+}
+@keyframes kneeExt { 0%, 10% { transform: rotate(0deg); } 48%, 60% { transform: rotate(-82deg); } 100% { transform: rotate(0deg); } }
+@keyframes kneeArc { 0%, 10% { stroke-dashoffset: 50.3; } 48%, 60% { stroke-dashoffset: 4.5; } 100% { stroke-dashoffset: 50.3; } }
+@keyframes chUp { from { transform: translateY(110%); } to { transform: none; } }
+@keyframes ldIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes ldFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .loader { transition: opacity .3s linear, visibility 0s linear .3s; }
+  .loader.leaving .ld-inner { transform: none; }
+}
+
 .toast {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); translate: -50% calc(100% + 48px); z-index: 70; visibility: hidden;
   background: var(--ink); color: var(--bg); padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 0.92rem;
@@ -527,7 +580,16 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 </style>
 </head>
-<body>
+<body><div id="loader" class="loader graph" aria-hidden="true">
+  <div class="ld-inner">
+    <svg class="ld-figure" viewBox="0 0 240 172" aria-hidden="true"><line class="ld-ground" x1="14" y1="162" x2="226" y2="162"/><line class="ld-seat" x1="22" y1="80" x2="120" y2="80"/><line class="ld-seat" x1="34" y1="80" x2="34" y2="162"/><path class="ld-arc-bg" d="M134 98 A32 32 0 0 0 166 66"/><path class="ld-arc" d="M134 98 A32 32 0 0 0 166 66"/><g class="ld-shank"><line class="ld-bone" x1="134" y1="66" x2="134" y2="148"/><line class="ld-bone" x1="134" y1="148" x2="154" y2="152"/><circle class="ld-mk" cx="134" cy="148" r="5.5"/></g><line class="ld-bone" x1="46" y1="66" x2="134" y2="66"/><rect class="ld-tape" x="112" y="60" width="44" height="12" rx="6" transform="rotate(-38 134 66)"/><circle class="ld-mk" cx="46" cy="66" r="5.5"/><circle class="ld-mk" cx="134" cy="66" r="6.5"/></svg>
+    <p class="ld-brand"><span class="ld-strong"><span class="ch" style="--i:0">J</span><span class="ch" style="--i:1">e</span><span class="ch" style="--i:2">s</span><span class="ch" style="--i:3">s</span><span class="ch" style="--i:4">i</span><span class="ch" style="--i:5">e</span></span><span class="ch" style="--i:6">&nbsp;</span><span class="ch" style="--i:7">-</span><span class="ch" style="--i:8">&nbsp;</span><span class="ch" style="--i:9">P</span><span class="ch" style="--i:10">h</span><span class="ch" style="--i:11">y</span><span class="ch" style="--i:12">s</span><span class="ch" style="--i:13">i</span><span class="ch" style="--i:14">o</span><span class="ch" style="--i:15">t</span><span class="ch" style="--i:16">h</span><span class="ch" style="--i:17">e</span><span class="ch" style="--i:18">r</span><span class="ch" style="--i:19">a</span><span class="ch" style="--i:20">p</span><span class="ch" style="--i:21">i</span><span class="ch" style="--i:22">s</span><span class="ch" style="--i:23">t</span></p>
+    <p class="ld-sub label">Sports &amp; orthopaedic rehabilitation</p>
+  </div>
+</div>
+<script>(function(){var d=document.documentElement;d.classList.add("is-loading");setTimeout(function(){var l=document.getElementById("loader");d.classList.remove("is-loading");if(l)l.classList.add("leaving");},3500);})();</script>
+<noscript><style>#loader{display:none}</style></noscript>
+
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="site-header">
@@ -824,6 +886,45 @@ ul { margin: 0; padding: 0; list-style: none; }
   const ease = (t) => 1 - Math.pow(1 - t, 4);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const hasIO = "IntersectionObserver" in window;
+
+  /* ---------- Loading screen ----------
+     Leaves as soon as what the first screen needs is ready: the web fonts and the hero portrait.
+     Never waits longer than 2.6 s. On the first visit of a session it also lets the name finish
+     appearing so it can be read and the screen never flickers; repeat visits only wait for
+     readiness. Nothing loops after it has gone. */
+  const loader = $("#loader");
+  if (loader) {
+    const root = document.documentElement;
+    const main = $("#main");
+    if (main) main.setAttribute("aria-busy", "true");
+    let seen = false;
+    try { seen = sessionStorage.getItem("jp-intro") === "1"; sessionStorage.setItem("jp-intro", "1"); } catch (_) { /* storage blocked */ }
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    // First visit: hold only until the name has finished appearing (~0.65 s after its letters start).
+    // Repeat visits and reduced motion: the name shows at once and nothing is held.
+    if (seen || reduceMotion) loader.classList.add("instant");
+    const textShown = Promise.race([fonts, wait(450)]).then(() => {
+      loader.classList.add("text-in");
+      return seen || reduceMotion ? null : wait(650);
+    });
+    const img = $(".photo-card img");
+    const photo = !img ? Promise.resolve()
+      : img.decode ? img.decode().catch(() => {})
+      : new Promise((r) => { if (img.complete) r(); else { img.addEventListener("load", r, { once: true }); img.addEventListener("error", r, { once: true }); } });
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      loader.classList.add("leaving");
+      root.classList.remove("is-loading");
+      if (main) main.removeAttribute("aria-busy");
+      const remove = () => { if (loader.isConnected) loader.remove(); };
+      loader.addEventListener("transitionend", (ev) => { if (ev.target === loader && ev.propertyName === "opacity") remove(); });
+      setTimeout(remove, 1200);
+    };
+    Promise.race([Promise.all([fonts, photo, textShown]), wait(2600)]).then(finish);
+  }
 
   /* ---------- Header: capsule fills in after scrolling, hides on the way down ---------- */
   const header = $(".site-header");

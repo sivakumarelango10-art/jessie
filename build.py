@@ -51,6 +51,7 @@ def build():
 <meta name="description" content="{e(DESCRIPTION)}">
 <meta name="author" content="Jessie">
 <meta name="theme-color" content="#2447df">
+<meta name="color-scheme" content="light dark">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="{TITLE}">
 <meta property="og:description" content="{e(DESCRIPTION)}">

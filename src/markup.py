@@ -157,6 +157,41 @@ def orofacial_art():
 
 
 # ---------------------------------------------------------------- page
+def loader():
+    """Loading screen: a seated knee-extension (a classic rehab exercise) drawn with motion-capture markers,
+    and the brand revealed letter by letter. Purely visual, so it is hidden from assistive tech; the
+    page itself is marked aria-busy until it leaves. A tiny inline script pauses the hero entrance
+    behind it and removes it after 3.5 s if the main script never runs; <noscript> hides it outright."""
+    def chars(text, start):
+        return "".join(f'<span class="ch" style="--i:{start + i}">{"&nbsp;" if c == " " else e(c)}</span>'
+                       for i, c in enumerate(text))
+    first, rest = "Jessie", " - Physiotherapist"
+    kx, ky = 134, 66
+    figure = (
+        '<svg class="ld-figure" viewBox="0 0 240 172" aria-hidden="true">'
+        '<line class="ld-ground" x1="14" y1="162" x2="226" y2="162"/>'
+        '<line class="ld-seat" x1="22" y1="80" x2="120" y2="80"/>'
+        '<line class="ld-seat" x1="34" y1="80" x2="34" y2="162"/>'
+        f'<path class="ld-arc-bg" d="M{kx} {ky + 32} A32 32 0 0 0 {kx + 32} {ky}"/>'
+        f'<path class="ld-arc" d="M{kx} {ky + 32} A32 32 0 0 0 {kx + 32} {ky}"/>'
+        f'<g class="ld-shank"><line class="ld-bone" x1="{kx}" y1="{ky}" x2="{kx}" y2="148"/>'
+        f'<line class="ld-bone" x1="{kx}" y1="148" x2="{kx + 20}" y2="152"/>'
+        f'<circle class="ld-mk" cx="{kx}" cy="148" r="5.5"/></g>'
+        f'<line class="ld-bone" x1="46" y1="{ky}" x2="{kx}" y2="{ky}"/>'
+        f'<rect class="ld-tape" x="{kx - 22}" y="{ky - 6}" width="44" height="12" rx="6" transform="rotate(-38 {kx} {ky})"/>'
+        f'<circle class="ld-mk" cx="46" cy="{ky}" r="5.5"/><circle class="ld-mk" cx="{kx}" cy="{ky}" r="6.5"/>'
+        '</svg>')
+    return f"""<div id="loader" class="loader graph" aria-hidden="true">
+  <div class="ld-inner">
+    {figure}
+    <p class="ld-brand"><span class="ld-strong">{chars(first, 0)}</span>{chars(rest, len(first))}</p>
+    <p class="ld-sub label">Sports &amp; orthopaedic rehabilitation</p>
+  </div>
+</div>
+<script>(function(){{var d=document.documentElement;d.classList.add("is-loading");setTimeout(function(){{var l=document.getElementById("loader");d.classList.remove("is-loading");if(l)l.classList.add("leaving");}},3500);}})();</script>
+<noscript><style>#loader{{display:none}}</style></noscript>
+"""
+
 def resume_button(mode):
     """The one résumé download control, used everywhere it appears.
 
@@ -232,7 +267,7 @@ def page(mode, photo_src):
     certs = "".join(f'<li class="cert"><span class="strip">{e(n)}</span><p>{e(d)}</p></li>' for n, d in C.CERTIFICATIONS)
     langs = "".join(f"<li><b>{e(n)}</b><span>{e(l)}</span></li>" for n, l in C.LANGUAGES)
 
-    return f'''
+    return loader() + f'''
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="site-header">

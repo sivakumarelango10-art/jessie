@@ -7,6 +7,45 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const hasIO = "IntersectionObserver" in window;
 
+  /* ---------- Loading screen ----------
+     Leaves as soon as what the first screen needs is ready: the web fonts and the hero portrait.
+     Never waits longer than 2.6 s. On the first visit of a session it also lets the name finish
+     appearing so it can be read and the screen never flickers; repeat visits only wait for
+     readiness. Nothing loops after it has gone. */
+  const loader = $("#loader");
+  if (loader) {
+    const root = document.documentElement;
+    const main = $("#main");
+    if (main) main.setAttribute("aria-busy", "true");
+    let seen = false;
+    try { seen = sessionStorage.getItem("jp-intro") === "1"; sessionStorage.setItem("jp-intro", "1"); } catch (_) { /* storage blocked */ }
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    // First visit: hold only until the name has finished appearing (~0.65 s after its letters start).
+    // Repeat visits and reduced motion: the name shows at once and nothing is held.
+    if (seen || reduceMotion) loader.classList.add("instant");
+    const textShown = Promise.race([fonts, wait(450)]).then(() => {
+      loader.classList.add("text-in");
+      return seen || reduceMotion ? null : wait(650);
+    });
+    const img = $(".photo-card img");
+    const photo = !img ? Promise.resolve()
+      : img.decode ? img.decode().catch(() => {})
+      : new Promise((r) => { if (img.complete) r(); else { img.addEventListener("load", r, { once: true }); img.addEventListener("error", r, { once: true }); } });
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      loader.classList.add("leaving");
+      root.classList.remove("is-loading");
+      if (main) main.removeAttribute("aria-busy");
+      const remove = () => { if (loader.isConnected) loader.remove(); };
+      loader.addEventListener("transitionend", (ev) => { if (ev.target === loader && ev.propertyName === "opacity") remove(); });
+      setTimeout(remove, 1200);
+    };
+    Promise.race([Promise.all([fonts, photo, textShown]), wait(2600)]).then(finish);
+  }
+
   /* ---------- Header: capsule fills in after scrolling, hides on the way down ---------- */
   const header = $(".site-header");
   let lastY = window.scrollY;

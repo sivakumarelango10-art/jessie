@@ -33,12 +33,17 @@ Styles are in `src/styles.css`, interactions in `src/main.js`. After editing, re
 python3 build.py
 ```
 
-To test: serve `dist/site` on port 8765 and run `python3 scripts/check.py <screenshot-folder>`
+To test: serve `dist/site` (e.g. `python3 -m http.server 8766` inside it) and run
+`python3 scripts/audit.py <dir>` (layout, buttons, real résumé download) and `python3 scripts/loader_test.py <dir>` (loading screen).
+Set `SITE_URL` if the site is served elsewhere. `scripts/check.py` takes full-page screenshots.
 (needs `pip install playwright && playwright install chromium`).
 
 ## Notes
 
 - Fonts: Bricolage Grotesque (display), Plus Jakarta Sans (body) and IBM Plex Mono (labels) from Google Fonts.
 - Markup lives in `src/markup.py`; the first design is kept in `archive/v1/` for reference.
+- Loading screen: a seated knee-extension figure and the name revealed letter by letter. It lifts as soon as the
+  fonts and portrait are ready (first visit also lets the name finish appearing, about 1 s; repeat visits about 0.1 s),
+  never stays longer than 2.6 s, and is skipped entirely without JavaScript.
 - Respects reduced-motion settings; works with keyboard and screen readers.
 - Home address, date of birth and gender from the résumé are intentionally not published.

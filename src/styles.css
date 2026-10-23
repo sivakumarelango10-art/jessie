@@ -57,7 +57,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; scrollbar-gutter: stable; background: var(--bg); }
+html.is-loading { overflow: hidden; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--f-body); font-size: var(--t-body); line-height: 1.7; font-weight: 400;
@@ -463,6 +464,57 @@ ul { margin: 0; padding: 0; list-style: none; }
 .footer-row .brand { color: var(--on-dark); }
 .footer-row a { text-decoration: none; }
 .footer-row a:hover { color: var(--on-dark); }
+
+/* ---------- Loading screen ---------- */
+.loader {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 90; display: grid; place-items: center; background-color: var(--bg);
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  transition: opacity .55s var(--ease) .12s, visibility 0s linear .7s;
+}
+.loader::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 50% 46%, transparent 35%, var(--bg) 80%); }
+.ld-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 18px; text-align: center; transition: opacity .4s var(--ease), transform .55s var(--ease); }
+.ld-figure { width: clamp(160px, 32vw, 260px); height: auto; overflow: visible; }
+.ld-ground { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 6; opacity: .55; }
+.ld-seat { stroke: var(--muted); stroke-width: 3; stroke-linecap: round; opacity: .55; }
+.ld-bone { stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
+.ld-mk { fill: var(--blue); stroke: var(--bg); stroke-width: 2.5; }
+.ld-tape { fill: var(--blue); opacity: .85; }
+.ld-arc-bg { fill: none; stroke: var(--line); stroke-width: 3; }
+.ld-arc { fill: none; stroke: var(--coral); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: 28; }
+.ld-shank { transform-box: view-box; transform-origin: 134px 66px; transform: rotate(-40deg); }
+.ld-brand {
+  font-family: var(--f-display); font-weight: 500; font-size: clamp(1.3rem, 5.4vw, 2.7rem); letter-spacing: -0.02em;
+  font-variation-settings: "wdth" 90; line-height: 1.15; white-space: nowrap; overflow: hidden; padding-block: 0.06em;
+}
+.ld-strong .ch { font-weight: 700; }
+.ld-brand .ch { display: inline-block; }
+.ld-sub { opacity: 1; }
+.loader.leaving { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader.leaving .ld-inner { opacity: 0; transform: translateY(-14px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ld-figure { animation: ldIn .7s var(--ease) both; }
+  .ld-shank { animation: kneeExt 2.2s var(--ease-io) .25s infinite both; }
+  .ld-arc { animation: kneeArc 2.2s var(--ease-io) .25s infinite both; }
+  .ld-brand .ch { transform: translateY(110%); }
+  .loader.text-in .ld-brand .ch { animation: chUp .55s var(--ease) both; animation-delay: calc(var(--i) * 14ms); }
+  .loader.instant .ld-brand .ch, .loader.instant .ld-sub { animation: none; transform: none; opacity: 1; }
+  .ld-sub { opacity: 0; }
+  .loader.text-in .ld-sub { animation: ldFade .5s var(--ease) .3s both; }
+  /* the hero entrance waits behind the loader, then plays as it lifts */
+  html.is-loading .enter, html.is-loading .hero h1 .line > span, html.is-loading .photo-card, html.is-loading .photo-card img,
+  html.is-loading .hero-visual .tape, html.is-loading .gait-card { animation-play-state: paused; }
+}
+@keyframes kneeExt { 0%, 10% { transform: rotate(0deg); } 48%, 60% { transform: rotate(-82deg); } 100% { transform: rotate(0deg); } }
+@keyframes kneeArc { 0%, 10% { stroke-dashoffset: 50.3; } 48%, 60% { stroke-dashoffset: 4.5; } 100% { stroke-dashoffset: 50.3; } }
+@keyframes chUp { from { transform: translateY(110%); } to { transform: none; } }
+@keyframes ldIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes ldFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .loader { transition: opacity .3s linear, visibility 0s linear .3s; }
+  .loader.leaving .ld-inner { transform: none; }
+}
 
 .toast {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); translate: -50% calc(100% + 48px); z-index: 70; visibility: hidden;
